@@ -1,0 +1,460 @@
+-- phpMyAdmin SQL Dump
+-- version 4.8.5
+-- https://www.phpmyadmin.net/
+--
+-- Generation Time: Jul 09, 2020 at 01:27 PM
+-- Server version: 5.7.28-log
+-- PHP Version: 7.1.22
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `villagedb`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Area`
+--
+
+CREATE TABLE `Area` (
+  `ID` int(10) UNSIGNED NOT NULL,
+  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `Num` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `Date_Created` datetime DEFAULT NULL,
+  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Created_By` varchar(20) DEFAULT NULL,
+  `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
+  `Modified_By` varchar(20) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `County`
+--
+
+CREATE TABLE `County` (
+  `ID` int(10) UNSIGNED NOT NULL,
+  `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `Name_ROM` varchar(150) NOT NULL DEFAULT '',
+  `Name_PY` varchar(150) NOT NULL DEFAULT '',
+  `Name_JP` varchar(150) NOT NULL DEFAULT '',
+  `Name_STC` varchar(100) NOT NULL DEFAULT '',
+  `Date_Created` datetime DEFAULT NULL,
+  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Created_By` varchar(20) DEFAULT NULL,
+  `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
+  `Modified_By` varchar(20) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Heung`
+--
+
+CREATE TABLE `Heung` (
+  `ID` int(10) UNSIGNED NOT NULL,
+  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `Name_ROM` varchar(150) NOT NULL DEFAULT '',
+  `Name_PY` varchar(150) NOT NULL DEFAULT '',
+  `Name_JP` varchar(150) NOT NULL DEFAULT '',
+  `Name_STC` varchar(100) NOT NULL DEFAULT '',
+  `Markets` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `Markets_ROM` varchar(150) NOT NULL DEFAULT '',
+  `Markets_PY` varchar(150) NOT NULL DEFAULT '',
+  `Markets_JP` varchar(150) NOT NULL DEFAULT '',
+  `Markets_STC` varchar(100) NOT NULL DEFAULT '',
+  `Map_Location` varchar(7) DEFAULT NULL,
+  `latlon` varchar(21) CHARACTER SET ascii NOT NULL,
+  `Date_Created` datetime DEFAULT NULL,
+  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Created_By` varchar(20) DEFAULT NULL,
+  `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
+  `Modified_By` varchar(20) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Heung_Lookup`
+--
+
+CREATE TABLE `Heung_Lookup` (
+  `ID` int(10) UNSIGNED NOT NULL,
+  `Heung_Level` tinyint(3) UNSIGNED NOT NULL DEFAULT '0'
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Pingyam`
+--
+
+CREATE TABLE `Pingyam` (
+  `Big5` varchar(1) CHARACTER SET utf8mb4 NOT NULL,
+  `Pinyin` varchar(7) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `Readings_PY` tinyint(4) NOT NULL DEFAULT '0',
+  `Jyutping` varchar(7) CHARACTER SET ascii NOT NULL,
+  `Readings_JP` tinyint(4) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `roms`
+--
+
+CREATE TABLE `roms` (
+  `b5` varchar(1) CHARACTER SET utf8mb4 NOT NULL,
+  `rom` varchar(8) NOT NULL DEFAULT ''
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `STC`
+--
+
+CREATE TABLE `STC` (
+  `STC_Code` char(4) CHARACTER SET ascii NOT NULL DEFAULT '',
+  `Big5` varchar(1) CHARACTER SET utf8mb4 NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Subheung`
+--
+
+CREATE TABLE `Subheung` (
+  `ID` int(10) UNSIGNED NOT NULL,
+  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `Name_ROM` varchar(150) NOT NULL DEFAULT '',
+  `Name_PY` varchar(150) NOT NULL DEFAULT '',
+  `Name_JP` varchar(150) NOT NULL DEFAULT '',
+  `Name_STC` varchar(100) NOT NULL DEFAULT '',
+  `Date_Created` datetime DEFAULT NULL,
+  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Created_By` varchar(20) DEFAULT NULL,
+  `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
+  `Modified_By` varchar(20) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Subheung2`
+--
+
+CREATE TABLE `Subheung2` (
+  `ID` int(10) UNSIGNED NOT NULL,
+  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `Name_ROM` varchar(150) NOT NULL DEFAULT '',
+  `Name_PY` varchar(150) NOT NULL DEFAULT '',
+  `Name_JP` varchar(150) NOT NULL DEFAULT '',
+  `Name_STC` varchar(100) NOT NULL DEFAULT '',
+  `Date_Created` datetime DEFAULT NULL,
+  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Created_By` varchar(20) DEFAULT NULL,
+  `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
+  `Modified_By` varchar(20) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `surnames`
+--
+
+CREATE TABLE `surnames` (
+  `b5` varchar(2) CHARACTER SET utf8mb4 NOT NULL,
+  `roms` varchar(30) NOT NULL DEFAULT '0',
+  `py` varchar(15) NOT NULL DEFAULT '',
+  `jp` varchar(15) NOT NULL DEFAULT ''
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `surnames_index`
+--
+
+CREATE TABLE `surnames_index` (
+  `b5` varchar(2) CHARACTER SET utf8mb4 NOT NULL,
+  `village_id` int(11) UNSIGNED NOT NULL DEFAULT '0'
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `User`
+--
+
+CREATE TABLE `User` (
+  `username` varchar(20) NOT NULL DEFAULT '',
+  `pwd` varchar(60) DEFAULT NULL,
+  `fullname` varchar(60) NOT NULL DEFAULT '',
+  `email` varchar(60) NOT NULL DEFAULT '',
+  `lastlogin` datetime DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `Village`
+--
+
+CREATE TABLE `Village` (
+  `ID` int(10) UNSIGNED NOT NULL,
+  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `Name_ROM` varchar(150) NOT NULL DEFAULT '',
+  `Name_PY` varchar(150) NOT NULL DEFAULT '',
+  `Name_JP` varchar(150) NOT NULL DEFAULT '',
+  `Name_STC` varchar(100) NOT NULL DEFAULT '',
+  `Surnames` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
+  `Surnames_ROM` varchar(150) NOT NULL DEFAULT '',
+  `Surnames_PY` varchar(150) NOT NULL DEFAULT '',
+  `Surnames_JP` varchar(150) NOT NULL DEFAULT '',
+  `Surnames_STC` varchar(100) NOT NULL DEFAULT '',
+  `Date_Created` datetime DEFAULT NULL,
+  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Created_By` varchar(20) DEFAULT NULL,
+  `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
+  `Modified_By` varchar(20) DEFAULT NULL,
+  `Heung_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `Subheung_ID` int(10) UNSIGNED DEFAULT NULL,
+  `Subheung2_ID` int(10) UNSIGNED DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+
+--
+-- Triggers `Village`
+--
+DELIMITER $$
+CREATE TRIGGER `insert_heung_ids` BEFORE INSERT ON `Village` FOR EACH ROW BEGIN
+SET @hlevel = (SELECT Heung_Level FROM Heung_Lookup WHERE Heung_Lookup.ID=new.Up_ID);
+IF @hlevel=0 THEN
+SET new.Heung_ID=new.Up_ID;
+ELSEIF @hlevel=1 THEN
+SET @hid = (SELECT Up_ID FROM Subheung WHERE ID=new.Up_ID);
+SET new.Heung_ID=@hid;
+SET new.Subheung_ID=new.Up_ID;
+ELSEIF @hlevel=2 THEN
+SET @hid = 0;
+SET @sid = 0;
+SELECT Subheung.Up_ID, Subheung.ID INTO @hid, @sid FROM Subheung JOIN Subheung2 ON Subheung.ID=Subheung2.Up_ID WHERE Subheung2.ID=new.Up_ID;
+SET new.Heung_ID=@hid;
+SET new.Subheung_ID=@sid;
+SET new.Subheung2_ID=new.Up_ID;
+END IF;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `village_delete` AFTER DELETE ON `Village` FOR EACH ROW DELETE FROM surnames_index WHERE village_id=old.ID
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `village_insert` AFTER INSERT ON `Village` FOR EACH ROW BEGIN
+SET @x = 0; # failsafe to prevent infinite loop in case something goes horribly wrong
+SET @list = new.Surnames;
+label1: LOOP
+IF CHAR_LENGTH(@list) = 0 OR @x = 50 THEN LEAVE label1;
+END IF;
+SET @item = SUBSTRING_INDEX(@list, ',', 1);
+SET @len = CHAR_LENGTH(@item);
+SET @item = TRIM(@item);
+INSERT INTO surnames_index (b5, village_id) VALUES (@item, new.ID);
+SET @list = SUBSTRING(@list, @len+2);
+SET @x = @x+1;
+END LOOP;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `village_update` AFTER UPDATE ON `Village` FOR EACH ROW label0: BEGIN
+IF old.Surnames = new.Surnames THEN LEAVE label0;
+END IF;
+DELETE FROM surnames_index WHERE village_id=old.ID;
+SET @x = 0; # failsafe to prevent infinite loop in case something goes horribly wrong
+SET @list = new.Surnames;
+label1: LOOP
+IF CHAR_LENGTH(@list) = 0 OR @x = 50 THEN LEAVE label1;
+END IF;
+SET @item = SUBSTRING_INDEX(@list, ',', 1);
+SET @len = CHAR_LENGTH(@item);
+SET @item = TRIM(@item);
+INSERT INTO surnames_index (b5, village_id) VALUES (@item, new.ID);
+SET @list = SUBSTRING(@list, @len+2);
+SET @x = @x+1;
+END LOOP;
+END
+$$
+DELIMITER ;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `Area`
+--
+ALTER TABLE `Area`
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `Up_ID` (`Up_ID`);
+
+--
+-- Indexes for table `County`
+--
+ALTER TABLE `County`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `Heung`
+--
+ALTER TABLE `Heung`
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `Up_ID` (`Up_ID`);
+
+--
+-- Indexes for table `Heung_Lookup`
+--
+ALTER TABLE `Heung_Lookup`
+  ADD PRIMARY KEY (`ID`);
+
+--
+-- Indexes for table `Pingyam`
+--
+ALTER TABLE `Pingyam`
+  ADD PRIMARY KEY (`Big5`);
+
+--
+-- Indexes for table `roms`
+--
+ALTER TABLE `roms`
+  ADD KEY `rom` (`rom`),
+  ADD KEY `b5` (`b5`);
+
+--
+-- Indexes for table `STC`
+--
+ALTER TABLE `STC`
+  ADD PRIMARY KEY (`STC_Code`),
+  ADD KEY `Hant` (`Big5`);
+
+--
+-- Indexes for table `Subheung`
+--
+ALTER TABLE `Subheung`
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `Up_ID` (`Up_ID`);
+
+--
+-- Indexes for table `Subheung2`
+--
+ALTER TABLE `Subheung2`
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `Up_ID` (`Up_ID`) USING HASH;
+
+--
+-- Indexes for table `surnames`
+--
+ALTER TABLE `surnames`
+  ADD PRIMARY KEY (`b5`) USING BTREE;
+
+--
+-- Indexes for table `surnames_index`
+--
+ALTER TABLE `surnames_index`
+  ADD KEY `village_id` (`village_id`),
+  ADD KEY `surname` (`b5`) USING HASH;
+
+--
+-- Indexes for table `User`
+--
+ALTER TABLE `User`
+  ADD PRIMARY KEY (`username`);
+
+--
+-- Indexes for table `Village`
+--
+ALTER TABLE `Village`
+  ADD PRIMARY KEY (`ID`),
+  ADD KEY `Up_ID` (`Up_ID`) USING HASH,
+  ADD KEY `Name_ROM` (`Name_ROM`),
+  ADD KEY `Name_PY` (`Name_PY`),
+  ADD KEY `Heung_ID` (`Heung_ID`),
+  ADD KEY `Subheung_ID` (`Subheung_ID`),
+  ADD KEY `Subheung2_ID` (`Subheung2_ID`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `Area`
+--
+ALTER TABLE `Area`
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `County`
+--
+ALTER TABLE `County`
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `Heung`
+--
+ALTER TABLE `Heung`
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `Heung_Lookup`
+--
+ALTER TABLE `Heung_Lookup`
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `Subheung`
+--
+ALTER TABLE `Subheung`
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `Subheung2`
+--
+ALTER TABLE `Subheung2`
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `Village`
+--
+ALTER TABLE `Village`
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

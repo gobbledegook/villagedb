@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
+<html>
+<head>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-108355814-1"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+
+  		gtag('config', 'UA-108355814-1');
+	</script>
+<meta http-equiv=content-type content="text/html; charset=utf-8">
+	<title>Village DB: About</title>
+	<meta name="generator" content="BBEdit 6.5">
+	<LINK REL="stylesheet" TYPE="text/css" HREF="style.css">
+</head>
+<body>
+
+<table border="0" width="100%">
+<tr><td width="92"><!-- sidebar -->
+<div class="logo">Roots<br>VillageDB</div>
+<hr width="80" align="left" size="5">
+<a href=display.cgi>Browse</a><p>
+<a href=search.cgi>Search</a><p>
+<strong>About</strong><p>
+</td><td>
+
+<h1>Village DB: About</h1>
+
+<p>Welcome to the Roots Village Database, a digitization of the information from
+the Index of Clan Names By Villages published by the American Consulate General in Hong Kong
+in the 1970s. Originally used to investigate immigration fraud, this data is now valuable
+for genealogy research.</p>
+
+<p>The data here comes from the Index of Clan Names By Villages. There are four
+books, one each for Toishan, Sunwui, Hoiping, and Chungshan. Posted here is the
+note from the reprint edition, along with the introductions from the original four volumes:</p>
+
+<ul>
+<li><a href="reprint-edition.html">Note for the Reprint Edition</a>
+<li><a href="intro-toishan.html">Introduction - Toishan Index</a>
+<li><a href="intro-sunwui.html">Introduction - Sunwui Index</a>
+<li><a href="intro-hoiping.html">Introduction - Hoiping Index</a>
+<li><a href="intro-chungshan.html">Introduction - Chungshan Index</a>
+</ul>
+
+<p>Currently, data entry is mostly complete. There might be some bits and pieces missing.
+Please be patient; this is an entirely volunteer-driven project.</p>
+
+<p>Thanks to Him Mark Lai for wanting this to happen in the first place;
+to Beatrice Yu and Tony Tong for the early work starting in 2001;
+and to Andy Fong et al. for hosting the database at its current site.</p>
+
+<h2>Frequently Asked Questions</h2>
+<h3>Q: What does "Map Location" in the Heungs mean?</h3>
+
+<p>A: According to the introduction of the Index, the map locations are keyed to
+the grid coordinates of the U.S. Army Map Service Series covering Kwangtung Province.
+The grid system is MGRS (Military Grid Reference System), but using older grid labels
+where the second letter is off by ten letters (not including I and O). Thus, "FQ8262"
+would be "FE8262" in today's MGRS grid (the full coordinates would be 49QFE8262).
+As a further complication, the map in the original Hoiping book erroneously uses
+the polyconic grid (with 10,000 yard grid marks), and swaps the horizontal
+and vertical components. Thus, for Hoiping, "FQ0589" should have been "FQ7473",
+which translates to 49QFE7473 in today's MGRS grid system.</p>
+
+<p>For your convenience we have converted the MGRS location to an approximate area
+viewable on Google Maps. (Please keep in mind that the precision of the original map locations
+is ±1000m, and street map data for China as shown on Google is GPS-offset by another margin of error.)
+</p>
+
+
+<h2>Technical Notes</h2>
+<p>This site requires CSS and cookies enabled, and prefers
+JavaScript to be on.</p>
+
+<p>For those of you who are curious, the database is running on MySQL
+as a backend, and perl cgi scripts for the interface.
+Input of the data in Chinese was done by volunteers using STC, or Standard Telegraph Code, which
+maps a 4-digit code to a character. Apparently, there are two different
+telegraph encodings, one for Taiwan and one for mainland China.
+The version used in our data is of the mainland variety, and apparently
+can be found in a book entitled 《電報明碼》. Naturally, this book is
+nowhere to be found (I haven't had the chance to beam over to Hong Kong and
+search the large bookstores there [update: I have, and it's still nowhere to be found,
+though I didn't have time to search the big libraries there]), and the various tables out on the
+internet are rife with mistakes. The telegraph data that this database
+uses is culled mainly from information put together by the Unicode people.
+This data, combined with a couple of other sources, gives us a telegraph
+code table of 7977 characters, which still appears to be missing a few. 
+If anyone knows where I might find a more complete table, or the book,
+please let me know.</p>
+
+<!--
+[[p]]For the confused, there is an excellent description/history of Chinese
+telegraph codes at the following web site:[[/p]]
+
+[[a href="http://www.research.att.com/~reeds/ctc.html"]]Chinese Telegraphic Code[[/a]]
+-->
+
+<p>Romanizations for the characters are provided in jyutping (Cantonese) and pinyin (Mandarin).
+Great effort has been placed into making sure that (most of) these are correct.
+Let us know if you run into problems.</p>
+
+<!-- 
+<a href="http://www.geocities.com/hao510/">Chih-Hao Tsai's Technology Page</a> - the source for the pinyin table<br>
+<a href="http://www.hku.hk/linguist/lshk/">LSHK</a><br>
+ -->
+
+<h2>Links</h2>
+
+<a href="http://www.legacy1.net/">Siyi Genealogy</a><br>
+<a href="http://linguistics.berkeley.edu/~dom/toisan_refs.html">A Toisanese/Szeyap Bibliography</a>
+
+<h2>Version History</h2>
+1.1 - 2020.07.09
+<ul type=square>
+<li>added option to search heungs/subheungs
+<li>added the introduction from each of the four volumes
+<li>show all villages under each heung, grouped by subheung
+</ul>
+
+1.0 - 2020.07.04
+<ul type=square>
+<li>use unicode
+<li>updated surnames list on search page
+<li>added links to google maps for map locations
+<li>display pinyin with tone marks, etc.
+<li>fixed some bugs, made some optimizations
+</ul>
+
+0.96 - 2017.10.18
+<ul type=square>
+<li>AndyF got access to this site
+<li>added Google Analytics
+</ul>
+
+0.95 - 2005.01.29
+<ul type=square>
+<li>added dynamic show/hide of pinyin, stc, etc.
+</ul>
+
+0.94 - 2005.01.10
+<ul type=square>
+<li>fixed an unfortunate bug which caused searching of village
+names not to work at all
+</ul>
+
+0.93 - 2004.11.22
+<ul type=square>
+<li>fixed an obscure encoding problem which prevented search of surname Hui
+(it's actually an obscure mysql bug, i think)--thanks to Warren Huie for alerting
+me to this problem
+</ul>
+
+0.92 - 2004.06.26
+<ul type=square>
+<li>HTML redesign
+<li>long lists now sorted
+</ul>
+
+
+0.91 - 2004.02.01
+<ul type=square>
+<li>added name search to village
+<li>pinyin display
+</ul>
+
+0.9 - 2004.01.27
+<ul type=square>
+<li>improved search - searches surnames by chinese character instead of romanization
+<li>village search now shows enclosing County, Area, and Heung
+<li>selecting surnames popup automatically searches; selection "sticks"
+<li>made data entry more reliable (error checks for empty fields, duplicates, etc.)
+<li>improved editing, added deletion of entries
+<li>fixed up some errors in the data
+</ul>
+
+0.83 - 2002.03.01
+<ul type=square>
+<li>added rudimentary search
+</ul>
+
+0.81 - 2002.01.21
+<ul type=square>
+<li>made title (of browser window) more descriptive</li>
+<li>numbered listings</li>
+<li>made multiple names (aka's) explicit and easier to read in listings</li>
+<li>added surname to Village listings</li>
+</ul>
+
+
+0.8 - 2001.12.08
+<ul type=square>
+<li>first public release, for the first data entry party</li>
+</ul>
+
+
+<hr>
+last modified 2020 July 9 by Dominic Yu
+</td></tr></table>
+</body>
+</html>

@@ -1,0 +1,11 @@
+The STC (Standard Telegraph Code) table is based on the Unihan data, supplemented
+by various tables of varying quality found on the internet in 2001 and 2002
+(which may or may not still be around). Over time the table has been updated
+to match the usage in the Village Indexes. A small number of codes have been added
+to help input characters which originally had no codes. These start at 9701
+and can be considered a sort of private use area.
+
+Jyutping and Pinyin tables were based on data from the LSHK and Chih-Hao Tsai,
+respectively. For characters with multiple readings, the one most often used
+in the Village Indexes has been chosen. A handful of exceptional forms require
+special handling. See the script util/rectify-names.pl for an example of this.
