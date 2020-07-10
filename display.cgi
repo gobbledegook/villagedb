@@ -44,10 +44,12 @@ $session->{'level'} = $Q::level;
 $session->{'id'}	= $Q::id;
 
 # pre-header processing
-my $level_invalid = defined($Q::level) && !Roots::Level->Exists($Q::level);
-
-$level_invalid			# this error check covers display and edit
-	&& bail("Error: invalid parameters.");
+if ((defined($Q::level) && (!Roots::Level->Exists($Q::level) || $Q::id !~ /^\d+$/))) {
+	# this error check covers display and edit
+	print header(-type=>'text/html', -status=>'400 Bad Request');
+	print "Invalid parameters.";
+	exit;
+}
 
 if ($adding && !Roots::Level->Exists($add_level)) {	# for add
 	bail("addlevel not defined: $add_level");
@@ -339,9 +341,9 @@ sub print_subheungs {
 	my $num_subsubheungs;
 	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ', GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
 		. ' FROM Subheung LEFT JOIN Subheung2 ON Subheung2.Up_ID=Subheung.ID LEFT JOIN Village ON Village.Up_ID=Subheung.ID'
-		. " WHERE Subheung.Up_ID=$heung_id GROUP BY Subheung.ID ORDER BY Subheung.ID";
+		. " WHERE Subheung.Up_ID=? GROUP BY Subheung.ID ORDER BY Subheung.ID";
 	$sth = $dbh->prepare($sql);
-	$sth->execute() or bail("Error reading from database.");
+	$sth->execute($heung_id) or bail("Error reading from database.");
 	$output .= "<ol>";
 	my %subheungs_hash;
 	my @row;
@@ -420,12 +422,12 @@ sub print_villages {
 	}
 	return if $num_villages == 0;
 	my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields()) . ', Subheung_ID, Subheung2_ID FROM Village'
-		. " WHERE Heung_ID=$heung_id ORDER BY Subheung_ID, Subheung2_ID";
+		. " WHERE Heung_ID=? ORDER BY Subheung_ID, Subheung2_ID";
 	if ($sortorder =~ m/^(PY|ROM)$/ ) {
 		$sql .= ", Name_$sortorder";
 	}
 	$sth = $dbh->prepare($sql);
-	$sth->execute() or bail("Error reading from database.");
+	$sth->execute($heung_id) or bail("Error reading from database.");
 	my @row;
 	my $x = Roots::Level::Village->new();
 	my $last_subheung_id = undef;
