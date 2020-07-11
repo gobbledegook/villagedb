@@ -163,7 +163,7 @@ if ($btn eq "Display") {
 	} elsif ($btn eq "Submit") {
 		# submitting changes (display confirmation screen)
 		my $module = "Roots::Level::$Q::level";
-		if (my @result = $module->error_check_add()) {
+		if (my @result = ($module->error_check_add(), $module->stc_rom_check())) {
 			# reminder: the error check also prettifies the data
 			print h1("Warning"), p({class=>'error'},\@result),
 				p('These problems probably need to be fixed. You probably want to hit the \'back\' button and try again.');
@@ -324,8 +324,9 @@ sub display_children {
 		# show all Villages, grouped by Heung, Subheung, etc.
 		my $subheungs = print_subheungs($num_children, $id) if $auth_name || $num_children;
 		print_villages($num_villages, $id, $subheungs) if $auth_name || $num_villages;
-	} elsif ($auth_name || $num_children) {
-		print_list($child, $id, $num_children);
+	} else {
+		print_list($child, $id, $num_children) if $auth_name || $num_children;
+		print_list('Village', $id, $num_villages) if $num_villages;
 	}
 }
 
@@ -341,7 +342,7 @@ sub print_subheungs {
 		$output .= submit(-name=>"btn", -value=>"Add Subheung");
 		$output .= end_form(), "\n";
 	}
-	print $output, return if $num_subheungs == 0;
+	print($output), return if $num_subheungs == 0;
 	
 	my $num_subsubheungs;
 	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ', GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
@@ -562,7 +563,7 @@ sub child {
 	my $num = $dbh->selectrow_array($sql, undef, $id || ());
 
 	$stored{$level, $id} = [$child, $num];
-	return $child, $num unless $level =~ m/heung$/i;
+	return $child, $num unless $level =~ m/heung$/i; # continue if Heung/Subheung
 
 	my $column = $level . '_ID';
 	my $num_villages = $dbh->selectrow_array("SELECT COUNT(*) FROM Village WHERE $column=?", undef, $id);
