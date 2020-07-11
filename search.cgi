@@ -12,15 +12,18 @@ my (@menu);
 # get params, cookies
 my ($session, $cookie, $auth_name) = Roots::Util::get_session();
 my $q = CGI->new();
-
-$q = $session->{query} if $q->param('reload');
+my $reloaded;
+if ($q->param('reload')) {
+	$q = $session->{query};
+	$reloaded = 1;
+}
 
 $q->import_names('Q');
-my $self = 'search.cgi';
+my $self = $q->url(-absolute=>1);
 my $btn = $q->param('btn');
 
 # save this so login.cgi and options.cgi know where to go back to
-$session->{'page'}	= $self;
+$session->{'page'}	= $self . '?reload=1';
 $session->{'query'} = $q;
 
 
@@ -47,6 +50,7 @@ print hr, qq|\n<div class="admin">|;
 print "VillageDB $Roots::Util::VERSION by Dominic Yu.\n";
 #print qq#| <a href="about.html">About</a>#;
 print "</div>";
+print qq#<script>window.history.replaceState(null,"","$self")</script># if $reloaded;
 Roots::Template::print_tail();
 tied(%$session)->save;
 

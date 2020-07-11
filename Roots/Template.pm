@@ -2,7 +2,7 @@
 
 package Roots::Template;
 use v5.12;
-use CGI qw(cookie);
+use CGI qw(cookie url);
 
 my @keys = qw(b5 rom py jp stc);
 my @sortkeys = qw(book rom py);
@@ -20,6 +20,9 @@ sub print_head {
 	$title = ": $title" if $title;
 	$Roots::Util::headers_done = 1;
 	my $selected = cookie('sort') || 'rom';
+	my $absolute_url = url( -absolute => 1 );
+	my $relative_url = url( -relative => 1 );
+	my $base = substr($absolute_url, 0, -length($relative_url));
 	print <<EOF;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
@@ -36,7 +39,7 @@ sub print_head {
 	</script>
 	<title>Village DB$title</title>
 	<meta http-equiv=content-type content="text/html; charset=utf-8">
-	<LINK REL="stylesheet" TYPE="text/css" HREF="style.css">
+	<LINK REL="stylesheet" TYPE="text/css" HREF="${base}style.css">
 EOF
 	unless ($no_options) {
 		print <<JSCRIPT;
@@ -74,20 +77,20 @@ JSCRIPT
 <tr><td width="92"><!-- sidebar -->
 <div class="logo">Roots<br>VillageDB</div>
 <hr width="80" align="left" size="5">
-<a href=display.cgi>Browse</a><p>
-<a href=search.cgi>Search</a><p>
-<a href=about.html>About</a><p>
+<a href="${base}display.cgi">Browse</a><p>
+<a href="${base}search.cgi">Search</a><p>
+<a href="${base}about.html">About</a><p>
 </td><td>
 EOF
 
 	print <<EOF;
 <div style="font-size: smaller" align="right">
-<form method="POST" action="sort.cgi" name="sort">
+<form method="POST" action="${base}sort.cgi" name="sort">
 EOF
 	if ($auth_name) {
 		print "You are logged in as $auth_name. | ",
-			  '<a href="login.cgi">my account</a> | ',
-			  '<a href="login.cgi?btn=Logout">log out</a>';
+			  qq#<a href="${base}login.cgi">my account</a> | #,
+			  qq#<a href="${base}login.cgi?btn=Logout">log out</a>#;
 		print ' | ' unless $no_options;
 	}
 
@@ -105,10 +108,10 @@ EOF
 <noscript>
 <input type="submit" value="sort" name="btn"></button>
 </noscript>
-| <a href="options.cgi"
+| <a href="${base}options.cgi"
 	onclick="var n = document.getElementById('view').style; n['display'] = n['display'] == 'none' ? 'block' : 'none'; return false">more options</a>
 </form>
-<form action="options.cgi" method="post" id="view" style="display:none">
+<form action="${base}options.cgi" method="post" id="view" style="display:none">
 EOF
 		my %labels;
 			@labels{@keys} = qw(big5 romanization pinyin jyutping STC);

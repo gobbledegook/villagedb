@@ -112,17 +112,7 @@ sub get_existing_session {
 }
 
 sub session_url {
-	my $querystring;
-	for ($session{page}) {
-		if (/^display/) {
-			if ($session{'level'}) {
-				$querystring = "?level=$session{'level'}&id=$session{'id'}";
-			}
-		} elsif (/^search/) {
-			$querystring = "?reload=1";
-		}
-	}
-	return "$session{page}$querystring";
+	return $session{page};
 }
 
 sub stc2b5 {

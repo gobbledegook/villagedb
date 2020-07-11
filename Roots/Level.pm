@@ -206,9 +206,11 @@ sub head_title {
 # We need to know how to make links to the display script.
 sub myurl {
 	my $self = shift;
-	my $base = "display.cgi"; #script_name();
-	my $table = $self->table();
-	return "$base?level=$table&id=$self->{'id'}";
+	my $url = url(-absolute => 1);
+	my $relative_url = url(-relative => 1);
+	my $base = substr($url, 0, -length($relative_url));;
+	my $table = lc $self->table();
+	return "${base}display.cgi/$table/$self->{id}";
 }
 
 # display_short()

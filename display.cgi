@@ -11,39 +11,33 @@ binmode(STDOUT, ":utf8");
 my @levels = qw( County Area Heung Subheung Subheung2 Village );
 my $sth;					# statement (query) handle
 my %info;					# hash of Level objects
-my $self = "display.cgi";	# script_name();
+my $self  = url(-absolute => 1);
 
-# load parameters here
 $Q::level		= param("level");
 $Q::id			= param("id");
+my $btn			= param("btn") || param('defaultbtn');
+
+# redirect old style params to new style path urls
+if (defined($Q::level) && !defined($btn) && Roots::Level->Exists($Q::level) && $Q::id =~ /^\d+$/) {
+	my $level = lc($Q::level);
+	print redirect(-uri=>"$self/$level/$Q::id", -status=>'301 Moved Permanently');
+}
+# handle path url
+my $url_with_path = url(-absolute=>1, -path=>1);
+my $path = substr($url_with_path, length($self));
+if (my (undef, $level, $id) = split '/', $path, 3) {
+	$level =~ s/^(.)/uc $1/e;
+	$Q::level = $level;
+	$Q::id = $id;
+}
+
 my $add_level	= param("addlevel");
-my $btn			= param("btn") || param('defaultbtn') || "Display";
 my $past_life	= param("form");
 my $searchitem	= param('searchitem');
 
 my $adding	= $btn =~ m/^Add/ || $past_life eq "add";
 my $editing	= $btn eq "Edit"  || $past_life eq "edit";
 
-# load cookies here
-# we have three cookies: session id, display options, and sort order
-# (remember, a cookie is just a key/value pair)
-# the session (saved in /tmp using Apache::Session) stores
-# - user name
-# - level, id
-# - oldlevel info (only for editing)
-# - searchresults (list of id's for admin user to edit search results sequentially)
-
-my ($session, $cookie, $auth_name) = Roots::Util::get_session();
-
-$btn = "Display" if !$auth_name;
-	# if you're not logged in, force it to display only
-
-# save this so login.cgi and options.cgi know where to go back to
-$session->{'page'}	= $self;
-$session->{'level'} = $Q::level;
-$session->{'id'}	= $Q::id;
-
-# pre-header processing
 if ((defined($Q::level) && (!Roots::Level->Exists($Q::level) || $Q::id !~ /^\d+$/))) {
 	# this error check covers display and edit
 	print header(-type=>'text/html', -status=>'400 Bad Request');
@@ -55,6 +49,20 @@ if ($adding && !Roots::Level->Exists($add_level)) {	# for add
 	bail("addlevel not defined: $add_level");
 }
 
+# load cookies here
+# we have three cookies: session id, display options, and sort order
+# (remember, a cookie is just a key/value pair)
+# the session (saved in /tmp using Apache::Session) stores
+# - user name
+# - level, id
+# - oldlevel info (only for editing)
+# - searchresults (list of id's for admin user to edit search results sequentially)
+
+my ($session, $cookie, $auth_name) = Roots::Util::get_session();
+$btn = "Display" if !$auth_name || !$btn; # if you're not logged in, force it to display only
+
+# save this so login.cgi and options.cgi know where to go back to
+$session->{'page'} = "$self/" . lc($Q::level) . "/$Q::id";
 
 Roots::Util::do_connect();
 
@@ -81,7 +89,7 @@ if ($editing && ($btn =~ m/^Save/ || $btn =~ m/^Skip/ || $btn =~ m/^Back/ || $bt
 		$btn = "Edit";
 		param('searchitem', $searchitem);
 	} else { #if ($btn =~ m/^Save/) { # special case to redirect
-		print redirect("$self?level=$Q::level&id=$Q::id");
+		print redirect("$self/" . lc($Q::level) . "/$Q::id");
 		exit;
 	}
 }
@@ -170,13 +178,8 @@ if ($btn eq "Display") {
 
 } elsif ($btn eq "Delete") {
 	if (param("del_confirm")) {
-		delete_from_db($Q::level, $Q::id);
-		# globals level, id now changed
-		#print $Q::level ? qq#<br><a href="$self?level=$Q::level&id=$Q::id">go back</a>#
-		#				: qq#<br><a href="$self">go back</a>#;
-		## here's some copy and paste
+		delete_from_db($Q::level, $Q::id); # this changes the values of $Q::level, $Q::id to the parent entity
 		Delete_all();	# otherwise wreaks havoc with the default params
-
 		if (!$Q::level) {
 			print h1("Roots Database"), "\n";
 			display_children();
@@ -184,6 +187,8 @@ if ($btn eq "Display") {
 			display_hierarchy();
 			display_children($Q::level, $Q::id) unless $Q::level eq "Village";
 		}
+		my $level = lc $Q::level;
+		print qq#<script>window.history.replaceState(null,"","$self/$level/$Q::id")</script>#;
 	} else {
 		if ($auth_name ne $info{$Q::level}->{created_by}) {
 			print "Sorry, in order to delete this record, you must be signed in as the person who created this record."
@@ -330,9 +335,9 @@ sub print_subheungs {
 	my $output = "<p>Contains $num_subheungs subheung" . ($num_subheungs == 1 ? '' : 's') . $end_par;
 	if ($auth_name) {
 		$output .= start_form("POST", "$self");
-		$output .= hidden("level");
+		$output .= qq#<input type="hidden" name="level" value="$Q::level">#;
 		$output .= '<input type="hidden" name="addlevel" value="Subheung">';
-		$output .= hidden("id", $heung_id);
+		$output .= qq#<input type="hidden" name="id" value="$heung_id">#;
 		$output .= submit(-name=>"btn", -value=>"Add Subheung");
 		$output .= end_form(), "\n";
 	}
@@ -414,9 +419,9 @@ sub print_villages {
 		. ":</p>\n";
 	if ($auth_name) {
 		print start_form("POST", "$self");
-		print hidden("level");
+		print qq#<input type="hidden" name="level" value="$Q::level">#;
 		print '<input type="hidden" name="addlevel" value="Village">';
-		print hidden("id", $heung_id);
+		print qq#<input type="hidden" name="id" value="$heung_id">#;
 		print submit(-name=>"btn", -value=>"Add Village to Heung");
 		print end_form(), "\n";
 	}
@@ -496,8 +501,9 @@ sub print_list {
 	my ($level, $id, $num) = @_;
 	if ($auth_name) {
 		print start_form("POST", "$self");
-		print hidden("level");
-		print hidden(-name=>"addlevel", -default=>[$level]), hidden("id", $id);
+		print qq#<input type="hidden" name="level" value="$Q::level">#;
+		print hidden(-name=>"addlevel", -default=>[$level]);
+		print qq#<input type="hidden" name="id" value="$id">#;
 		print submit(-name=>"btn", -value=>"Add $level");
 		print end_form(), "\n";
 	}
