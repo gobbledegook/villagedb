@@ -62,7 +62,7 @@ my ($session, $cookie, $auth_name) = Roots::Util::get_session();
 $btn = "Display" if !$auth_name || !$btn; # if you're not logged in, force it to display only
 
 # save this so login.cgi and options.cgi know where to go back to
-$session->{'page'} = "$self/" . lc($Q::level) . "/$Q::id";
+$session->{'page'} = "$self" . ($Q::level ? ('/' . lc($Q::level) . "/$Q::id") : '');
 
 Roots::Util::do_connect();
 
