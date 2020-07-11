@@ -75,14 +75,9 @@ sub _named {
 	return grep { $_big{$_} } $self->_fields;
 }
 
-sub _small_flds {
-	my $self = shift;
-	return grep { !$_big{$_} && $_ ne 'id' && $_ ne 'up_id' } $self->_fields;
-}
-
 sub _addable_flds {
 	my $self = shift;
-	return grep { $_ ne 'id' && $_ ne 'up_id' } $self->_fields;
+	return grep { $_ ne 'id' && $_ !~ /_id$/i } $self->_fields;
 }
 
 ## we may need to add a couple more, say, editable, or superuser
@@ -145,7 +140,7 @@ sub query_fields {
 
 	my @result;
 	foreach ($skip_id ? $self->_addable_flds : $self->_fields) {
-		my $name = $_sql_fld_name{$_};
+		my $name = $_sql_fld_name{$_} || $_;
 		push @result, $_big{$_}
 			? _name_fields($name)
 			: $name;
@@ -186,11 +181,6 @@ sub load {
 # --------------
 sub parent;
 
-sub up_id {
-	my $self = shift;
-	return $self->{'up_id'};
-}
-
 # Display Methods
 # ---------------
 # Each of these comes in pairs, so you can override the default behavior
@@ -217,8 +207,6 @@ sub myurl {
 # -------------
 # Displays just the name, clickable.
 # Override if you want anything else, like the num for Area.
-# I've actually designed the module so you could theoretically just get the
-# first item off the _fields array, but I think this is more efficient.
 sub display_short {
 	my $self = shift;
 	my $url = $self->myurl;
@@ -360,8 +348,8 @@ sub error_check_add {
 	foreach ($class->_named) {
 		push @result, BigName::error_check_params($_);
 	}
-	foreach ($class->_small_flds) {
-		next if $_ eq 'latlon';
+	foreach ($class->_addable_flds) {
+		next if $_big{$_} || $_ eq 'latlon';
 		push @result, "You left one of the fields blank ($_)!" if !param($_);
 	}
 	push @result, $class->_error_check_add();
@@ -406,7 +394,11 @@ sub duplicate_check {
 	return 0 unless $name; # don't check for empty names
 	
 	my $table = $class->table();
-	my $count = $dbh->selectrow_array("SELECT COUNT(*) FROM $table WHERE Up_ID=? AND Name=?", undef, $up_id, $name);
+	my $col = 'Up_ID';
+	if ($table eq 'Village' && Roots::Level->Exists(scalar param('level'))) {
+		$col = param('level') . '_ID';
+	}
+	my $count = $dbh->selectrow_array("SELECT COUNT(*) FROM $table WHERE $col=? AND Name=?", undef, $up_id, $name) // bail("duplicate check failed");
 	return $count;
 }
 
@@ -492,7 +484,6 @@ sub do_add {
 	$fields .= ", Date_Created, Created_By";
 	
 	# now lock table to prevent duplicates
-	# we must do this before _values is called and creates a Heung_Lookup
 	my $locks = $class->_locktables;
 	$dbh->do("LOCK TABLES $locks, STC READ") ||
 		bail('couldn\'t lock tables!');
@@ -553,7 +544,7 @@ sub _values {	# in parallel with fields(), array of values to save to db
 		} else {
 			my $item;
 			if ($_ eq 'up_id')	{ $item = param('id') }
-			elsif ($_ eq 'id')	{ $item = $class->_add_id }
+			elsif ($_ eq 'id')	{ $item = undef }
 			else 				{ $item = param($_) }
 			push @result, $item;
 		}
@@ -561,9 +552,6 @@ sub _values {	# in parallel with fields(), array of values to save to db
 	return @result;
 }
 
-sub _add_id {
-	return undef;
-}
 sub _locktables {
 	my $class = shift;
 	my $table = $class->table();
@@ -712,7 +700,6 @@ sub save_edit {
 	my @values = $class->_values(1);
 	foreach (@values) { $_ = $dbh->quote($_); }
 	
-	my $locks = $class->_locktables;
 	my $table = $class->table();
 	$dbh->do("LOCK TABLE $table WRITE") ||
 		bail('couldn\'t lock table!');

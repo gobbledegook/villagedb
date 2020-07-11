@@ -92,17 +92,6 @@ CREATE TABLE `Heung` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `Heung_Lookup`
---
-
-CREATE TABLE `Heung_Lookup` (
-  `ID` int(10) UNSIGNED NOT NULL,
-  `Heung_Level` tinyint(3) UNSIGNED NOT NULL DEFAULT '0'
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `Pingyam`
 --
 
@@ -226,7 +215,6 @@ CREATE TABLE `User` (
 
 CREATE TABLE `Village` (
   `ID` int(10) UNSIGNED NOT NULL,
-  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
   `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `Name_ROM` varchar(150) NOT NULL DEFAULT '',
   `Name_PY` varchar(150) NOT NULL DEFAULT '',
@@ -253,20 +241,14 @@ CREATE TABLE `Village` (
 --
 DELIMITER $$
 CREATE TRIGGER `insert_heung_ids` BEFORE INSERT ON `Village` FOR EACH ROW BEGIN
-SET @hlevel = (SELECT Heung_Level FROM Heung_Lookup WHERE Heung_Lookup.ID=new.Up_ID);
-IF @hlevel=0 THEN
-SET new.Heung_ID=new.Up_ID;
-ELSEIF @hlevel=1 THEN
-SET @hid = (SELECT Up_ID FROM Subheung WHERE ID=new.Up_ID);
-SET new.Heung_ID=@hid;
-SET new.Subheung_ID=new.Up_ID;
-ELSEIF @hlevel=2 THEN
+IF new.Subheung_ID IS NOT NULL THEN
+SET new.Heung_ID = (SELECT Up_ID FROM Subheung WHERE ID=new.Subheung_ID);
+ELSEIF new.Subheung2_ID IS NOT NULL THEN
 SET @hid = 0;
 SET @sid = 0;
-SELECT Subheung.Up_ID, Subheung.ID INTO @hid, @sid FROM Subheung JOIN Subheung2 ON Subheung.ID=Subheung2.Up_ID WHERE Subheung2.ID=new.Up_ID;
+SELECT Subheung.Up_ID, Subheung.ID INTO @hid, @sid FROM Subheung JOIN Subheung2 ON Subheung.ID=Subheung2.Up_ID WHERE Subheung2.ID=new.Subheung2_ID;
 SET new.Heung_ID=@hid;
 SET new.Subheung_ID=@sid;
-SET new.Subheung2_ID=new.Up_ID;
 END IF;
 END
 $$
@@ -336,12 +318,6 @@ ALTER TABLE `County`
 ALTER TABLE `Heung`
   ADD PRIMARY KEY (`ID`),
   ADD KEY `Up_ID` (`Up_ID`);
-
---
--- Indexes for table `Heung_Lookup`
---
-ALTER TABLE `Heung_Lookup`
-  ADD PRIMARY KEY (`ID`);
 
 --
 -- Indexes for table `Pingyam`
@@ -428,12 +404,6 @@ ALTER TABLE `County`
 -- AUTO_INCREMENT for table `Heung`
 --
 ALTER TABLE `Heung`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `Heung_Lookup`
---
-ALTER TABLE `Heung_Lookup`
   MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --

@@ -8,14 +8,28 @@ use Roots::Util;
 
 sub table { 'Village' }
 
-sub _fields	{ return qw/name up_id id surname/ }
+sub _fields	{ return qw/Heung_ID Subheung_ID Subheung2_ID id name surname/ }
 
 sub parent {
 	my $self = shift;
-	bail("Village object not initialized.") if !defined($self->{'id'});
-	
-	my ($heung_level) = $dbh->selectrow_array('SELECT Heung_Level FROM Heung_Lookup AS H WHERE H.ID=?', undef, $self->{up_id});
-	return 'Roots::Level::' . (qw(Heung Subheung Subheung2))[$heung_level];
+	my ($level, $id);
+	if ($id = $self->{Subheung2_ID}) { $level = 'Subheung2' }
+	elsif ($id = $self->{Subheung_ID}) { $level = 'Subheung' }
+	else { $id = $self->{Heung_ID}; $level = 'Heung' }
+	return "Roots::Level::$level", $id;
+}
+
+sub _values {
+	my $class = shift;
+	my ($skip_id) = @_;
+	if (!$skip_id) {
+		# when we're adding, we need to set the parent id
+		# SUPER::_values will fill it in using param(), so we set it here
+		my $level = param('level');
+		my $id = param('id');
+		param($level . '_ID', $id);
+	}
+	return $class->SUPER::_values($skip_id);
 }
 
 sub display_short {
@@ -46,6 +60,10 @@ sub _error_check_add {
 	}
 
 	return @result;
+}
+
+sub _locktables {
+	return "Village WRITE, Heung READ, Subheung READ, Subheung2 READ";
 }
 
 1;

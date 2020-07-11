@@ -37,8 +37,8 @@ sub bail {
 	print "<h1>Unexpected Error</h1><p>$error</p>";
 	if ($auth_name) {
 		use CGI::Carp qw(fatalsToBrowser);
-		print $dbh->errstr;
-		confess $error;
+		print $dbh->errstr, "<p>", $dbh->{Statement};
+		confess;
 	} else {
 		croak $error;
 	}

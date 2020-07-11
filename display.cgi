@@ -237,9 +237,8 @@ sub load_info {
 	while ($package) {	# becomes undef when we're done
 		$info{$package->table()} = my $x = $package->new();
 		$x->load_from_db($id);
-		
-		$id = $x->up_id;
-		$package = $x->parent();
+		($package, $id) = $x->parent();
+		$id ||= $x->{up_id};
 	}
 }
 
@@ -252,10 +251,6 @@ sub delete_from_db {
 		if $num_c || $num_v;
 	$dbh->do("DELETE FROM $level WHERE ID = ?", undef, $id) ||
 		bail("delete failed! ". $dbh->errstr);
-	if ($level =~ m/heung/i) {
-		$dbh->do("DELETE FROM Heung_Lookup WHERE ID = ?", undef, $id) ||
-			bail("Heung_Lookup delete failed! ". $dbh->errstr);
-	}
 # }
 	print "$level was deleted successfully.";
 	
@@ -346,7 +341,7 @@ sub print_subheungs {
 	
 	my $num_subsubheungs;
 	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ', GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
-		. ' FROM Subheung LEFT JOIN Subheung2 ON Subheung2.Up_ID=Subheung.ID LEFT JOIN Village ON Village.Up_ID=Subheung.ID'
+		. ' FROM Subheung LEFT JOIN Subheung2 ON Subheung2.Up_ID=Subheung.ID LEFT JOIN Village ON Village.Subheung_ID=Subheung.ID'
 		. " WHERE Subheung.Up_ID=? GROUP BY Subheung.ID ORDER BY Subheung.ID";
 	$sth = $dbh->prepare($sql);
 	$sth->execute($heung_id) or bail("Error reading from database.");
@@ -427,7 +422,7 @@ sub print_villages {
 		print end_form(), "\n";
 	}
 	return if $num_villages == 0;
-	my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields()) . ', Subheung_ID, Subheung2_ID FROM Village'
+	my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields()) . ' FROM Village'
 		. " WHERE Heung_ID=? ORDER BY Subheung_ID, Subheung2_ID";
 	if ($sortorder =~ m/^(PY|ROM)$/ ) {
 		$sql .= ", Name_$sortorder";
@@ -440,8 +435,8 @@ sub print_villages {
 	my $last_subheung2_id;
 	while (@row = $sth->fetchrow_array()) {
 		$x->load(@row);
-		my $subheung_id = $row[-2];
-		my $subheung2_id = $row[-1];
+		my $subheung_id = $row[1]; # see order of columns in Roots::Level::Village::_fields
+		my $subheung2_id = $row[2];
 		if (!defined($last_subheung_id) || ($subheung_id != $last_subheung_id)) {
 			print "</ol>\n" if $last_subheung2_id != 0 && defined($last_subheung_id);
 			$last_subheung2_id = 0;
@@ -514,7 +509,11 @@ sub print_list {
 	my $module = "Roots::Level::$level";
 	my $sql = 'SELECT ' . join(',', $module->query_fields()) . ' FROM ' . $level;
 	if ($id) {
-		$sql .= ' WHERE Up_ID=?';
+		my $col = 'Up_ID';
+		if ($level eq 'Village') {
+			$col = $Q::level . '_ID';
+		}
+		$sql .= " WHERE $col=?";
 	}
 	if ($level ne "Area" && $sortorder =~ m/^(PY|ROM)$/ ) {
 		$sql .= " ORDER BY Name_$sortorder";
@@ -557,8 +556,9 @@ sub child {
 	
 	my $child = $children{$level} || "County";
 	my $sql = 'SELECT COUNT(*) FROM ' . $child;
-	if ($id) {
-		$sql .= ' WHERE Up_ID=?';
+	if ($id) { # everything except County
+		my $col = $level eq 'Subheung2' ? 'Subheung2_ID' : 'Up_ID';
+		$sql .= " WHERE $col=?";
 	}
 	my $num = $dbh->selectrow_array($sql, undef, $id || ());
 
