@@ -34,7 +34,7 @@ sub _values {
 
 sub display_short {
 	my $self = shift;
-	print $self->_short() . "&nbsp; (" . $self->{'surname'}->format_short() . ")";
+	print '<a href="' . $self->myurl() . '">' .$self->_short() . "</a> (" . $self->{'surname'}->format_short() . ")";
 }
 
 sub _error_check_add {
