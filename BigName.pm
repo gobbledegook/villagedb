@@ -222,7 +222,7 @@ sub error_check_params {
 	$rom =~ s/\saka\s/, /g;	# replace aka's with commas (guard against input carelessness)
 	$stc =~ s/\saka\s/,/g;
 	my $n_items_rom = $rom =~ tr/,//; ## split(/,/, $rom);
-	$n_items_rom-- if $surname_exception;
+	$n_items_rom-- if $surname_exception && $n_items_rom > 0;
 	if ($stc =~ tr/,// != $n_items_rom) {
 		push @result, "Number of items don't match ($prefix)!";
 	}
