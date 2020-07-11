@@ -71,22 +71,21 @@ sub pwd_check {
 }
 
 sub do_new_user {
-	$dbh->do("LOCK TABLE User WRITE") || bail("Couldn't lock table: " . $dbh->errstr);
-		# we need to lock the table before checking if the information is valid.
-		# we check if the username already exists, and then add the username
-		# if everything checks out. We can't let anyone sneak in in between.
+	$dbh->do("START TRANSACTION") || bail("Couldn't begin work.");
+	$dbh->do("SELECT * FROM User WHERE username=? FOR UPDATE", undef, $Q::username) || bail("Couldn't lock table.");
 	if (my $error = invalid_info()) {
+		$dbh->do("ROLLBACK");
 		print "Error: $error";
 		print_new_user();
 	} else {
 		$dbh->do("INSERT INTO User (username, pwd, fullname, email, lastlogin) VALUES (?, SHA2(?, 224), ?, ?, NOW())", undef,
 				$Q::username, $Q::pwd, $Q::fullname, $Q::email)
 			|| bail("Couldn't add user to database: " . $dbh->errstr);
+		$dbh->do("COMMIT") || bail("Couldn't commit changes.");
 		$session->{'username'} = $Q::username;
 		timestamp();
 		print "Account created successfully. You are now logged in as $Q::username.";
 	}
-	$dbh->do("UNLOCK TABLES") || bail("Couldn't unlock table: " . $dbh->errstr);
 }
 
 # returns an error string if something's wrong

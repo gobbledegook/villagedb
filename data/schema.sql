@@ -28,8 +28,8 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `Area` (
-  `ID` int(10) UNSIGNED NOT NULL,
-  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `ID` smallint(4) UNSIGNED NOT NULL,
+  `Up_ID` tinyint(2) UNSIGNED NOT NULL DEFAULT '0',
   `Num` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `Date_Created` datetime DEFAULT NULL,
   `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -37,7 +37,7 @@ CREATE TABLE `Area` (
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
   `Modified_By` varchar(20) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
 
@@ -46,7 +46,7 @@ CREATE TABLE `Area` (
 --
 
 CREATE TABLE `County` (
-  `ID` int(10) UNSIGNED NOT NULL,
+  `ID` tinyint(2) UNSIGNED NOT NULL,
   `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `Name_ROM` varchar(150) NOT NULL DEFAULT '',
   `Name_PY` varchar(150) NOT NULL DEFAULT '',
@@ -58,7 +58,7 @@ CREATE TABLE `County` (
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
   `Modified_By` varchar(20) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
 
@@ -67,8 +67,8 @@ CREATE TABLE `County` (
 --
 
 CREATE TABLE `Heung` (
-  `ID` int(10) UNSIGNED NOT NULL,
-  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `ID` smallint(5) UNSIGNED NOT NULL,
+  `Up_ID` smallint(4) UNSIGNED NOT NULL DEFAULT '0',
   `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `Name_ROM` varchar(150) NOT NULL DEFAULT '',
   `Name_PY` varchar(150) NOT NULL DEFAULT '',
@@ -87,7 +87,7 @@ CREATE TABLE `Heung` (
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
   `Modified_By` varchar(20) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
 
@@ -101,7 +101,7 @@ CREATE TABLE `Pingyam` (
   `Readings_PY` tinyint(4) NOT NULL DEFAULT '0',
   `Jyutping` varchar(7) CHARACTER SET ascii NOT NULL,
   `Readings_JP` tinyint(4) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
 
@@ -110,9 +110,10 @@ CREATE TABLE `Pingyam` (
 --
 
 CREATE TABLE `roms` (
+  `pkey` smallint(4) UNSIGNED NOT NULL,
   `b5` varchar(1) CHARACTER SET utf8mb4 NOT NULL,
   `rom` varchar(8) NOT NULL DEFAULT ''
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -123,7 +124,7 @@ CREATE TABLE `roms` (
 CREATE TABLE `STC` (
   `STC_Code` char(4) CHARACTER SET ascii NOT NULL DEFAULT '',
   `Big5` varchar(1) CHARACTER SET utf8mb4 NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
 
@@ -132,8 +133,8 @@ CREATE TABLE `STC` (
 --
 
 CREATE TABLE `Subheung` (
-  `ID` int(10) UNSIGNED NOT NULL,
-  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `ID` smallint(5) UNSIGNED NOT NULL,
+  `Up_ID` smallint(5) UNSIGNED NOT NULL DEFAULT '0',
   `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `Name_ROM` varchar(150) NOT NULL DEFAULT '',
   `Name_PY` varchar(150) NOT NULL DEFAULT '',
@@ -145,7 +146,7 @@ CREATE TABLE `Subheung` (
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
   `Modified_By` varchar(20) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
 
@@ -154,8 +155,8 @@ CREATE TABLE `Subheung` (
 --
 
 CREATE TABLE `Subheung2` (
-  `ID` int(10) UNSIGNED NOT NULL,
-  `Up_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
+  `ID` smallint(5) UNSIGNED NOT NULL,
+  `Up_ID` smallint(5) UNSIGNED NOT NULL DEFAULT '0',
   `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `Name_ROM` varchar(150) NOT NULL DEFAULT '',
   `Name_PY` varchar(150) NOT NULL DEFAULT '',
@@ -167,7 +168,7 @@ CREATE TABLE `Subheung2` (
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
   `Modified_By` varchar(20) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
 
@@ -180,7 +181,7 @@ CREATE TABLE `surnames` (
   `roms` varchar(30) NOT NULL DEFAULT '0',
   `py` varchar(15) NOT NULL DEFAULT '',
   `jp` varchar(15) NOT NULL DEFAULT ''
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -189,9 +190,10 @@ CREATE TABLE `surnames` (
 --
 
 CREATE TABLE `surnames_index` (
+  `pkey` mediumint(6) UNSIGNED NOT NULL,
   `b5` varchar(2) CHARACTER SET utf8mb4 NOT NULL,
-  `village_id` int(11) UNSIGNED NOT NULL DEFAULT '0'
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  `village_id` mediumint(6) UNSIGNED NOT NULL DEFAULT '0'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -205,7 +207,7 @@ CREATE TABLE `User` (
   `fullname` varchar(60) NOT NULL DEFAULT '',
   `email` varchar(60) NOT NULL DEFAULT '',
   `lastlogin` datetime DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
 
@@ -214,7 +216,7 @@ CREATE TABLE `User` (
 --
 
 CREATE TABLE `Village` (
-  `ID` int(10) UNSIGNED NOT NULL,
+  `ID` mediumint(6) UNSIGNED NOT NULL,
   `Name` varchar(50) CHARACTER SET utf8mb4 NOT NULL,
   `Name_ROM` varchar(150) NOT NULL DEFAULT '',
   `Name_PY` varchar(150) NOT NULL DEFAULT '',
@@ -231,10 +233,10 @@ CREATE TABLE `Village` (
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
   `Modified_By` varchar(20) DEFAULT NULL,
-  `Heung_ID` int(10) UNSIGNED NOT NULL DEFAULT '0',
-  `Subheung_ID` int(10) UNSIGNED DEFAULT NULL,
-  `Subheung2_ID` int(10) UNSIGNED DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+  `Heung_ID` smallint(5) UNSIGNED NOT NULL DEFAULT '0',
+  `Subheung_ID` smallint(5) UNSIGNED DEFAULT NULL,
+  `Subheung2_ID` smallint(5) UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 --
 -- Triggers `Village`
@@ -251,10 +253,6 @@ SET new.Heung_ID=@hid;
 SET new.Subheung_ID=@sid;
 END IF;
 END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `village_delete` AFTER DELETE ON `Village` FOR EACH ROW DELETE FROM surnames_index WHERE village_id=old.ID
 $$
 DELIMITER ;
 DELIMITER $$
@@ -329,6 +327,7 @@ ALTER TABLE `Pingyam`
 -- Indexes for table `roms`
 --
 ALTER TABLE `roms`
+  ADD PRIMARY KEY (`pkey`),
   ADD KEY `rom` (`rom`),
   ADD KEY `b5` (`b5`);
 
@@ -363,6 +362,7 @@ ALTER TABLE `surnames`
 -- Indexes for table `surnames_index`
 --
 ALTER TABLE `surnames_index`
+  ADD PRIMARY KEY (`pkey`),
   ADD KEY `village_id` (`village_id`),
   ADD KEY `surname` (`b5`) USING HASH;
 
@@ -377,7 +377,6 @@ ALTER TABLE `User`
 --
 ALTER TABLE `Village`
   ADD PRIMARY KEY (`ID`),
-  ADD KEY `Up_ID` (`Up_ID`) USING HASH,
   ADD KEY `Name_ROM` (`Name_ROM`),
   ADD KEY `Name_PY` (`Name_PY`),
   ADD KEY `Heung_ID` (`Heung_ID`),
@@ -392,37 +391,91 @@ ALTER TABLE `Village`
 -- AUTO_INCREMENT for table `Area`
 --
 ALTER TABLE `Area`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` smallint(4) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `County`
 --
 ALTER TABLE `County`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` tinyint(2) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `Heung`
 --
 ALTER TABLE `Heung`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `roms`
+--
+ALTER TABLE `roms`
+  MODIFY `pkey` smallint(4) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `Subheung`
 --
 ALTER TABLE `Subheung`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `Subheung2`
 --
 ALTER TABLE `Subheung2`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` smallint(5) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `surnames_index`
+--
+ALTER TABLE `surnames_index`
+  MODIFY `pkey` mediumint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `Village`
 --
 ALTER TABLE `Village`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` mediumint(6) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `Area`
+--
+ALTER TABLE `Area`
+  ADD CONSTRAINT `Area_ibfk_1` FOREIGN KEY (`Up_ID`) REFERENCES `County` (`ID`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `Heung`
+--
+ALTER TABLE `Heung`
+  ADD CONSTRAINT `Heung_ibfk_1` FOREIGN KEY (`Up_ID`) REFERENCES `Area` (`ID`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `Subheung`
+--
+ALTER TABLE `Subheung`
+  ADD CONSTRAINT `Subheung_ibfk_1` FOREIGN KEY (`Up_ID`) REFERENCES `Heung` (`ID`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `Subheung2`
+--
+ALTER TABLE `Subheung2`
+  ADD CONSTRAINT `Subheung2_ibfk_1` FOREIGN KEY (`Up_ID`) REFERENCES `Subheung` (`ID`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `surnames_index`
+--
+ALTER TABLE `surnames_index`
+  ADD CONSTRAINT `surnames_index_ibfk_1` FOREIGN KEY (`village_id`) REFERENCES `Village` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `Village`
+--
+ALTER TABLE `Village`
+  ADD CONSTRAINT `Village_ibfk_1` FOREIGN KEY (`Heung_ID`) REFERENCES `Heung` (`ID`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `Village_ibfk_2` FOREIGN KEY (`Subheung_ID`) REFERENCES `Subheung` (`ID`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `Village_ibfk_3` FOREIGN KEY (`Subheung2_ID`) REFERENCES `Subheung2` (`ID`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

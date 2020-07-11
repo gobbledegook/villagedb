@@ -483,12 +483,6 @@ sub do_add {
 	my $fields = join ',', $class->query_fields();
 	$fields .= ", Date_Created, Created_By";
 	
-	# now lock table to prevent duplicates
-	my $locks = $class->_locktables;
-	$dbh->do("LOCK TABLES $locks, STC READ") ||
-		bail('couldn\'t lock tables!');
-	## we have to include STC because duplicate_check calls stc2b5
-
 	bail('duplicate entry!') if ($class->duplicate_check() > param('dupl'));
 
 	my @values = $class->_values();
@@ -523,11 +517,9 @@ sub do_add {
 	my $statement = "INSERT INTO $table ($fields) VALUES ($values)";
 	
 	$dbh->do($statement) or bail("Couldn't add $class: " . $dbh->errstr);
-	$dbh->do("UNLOCK TABLES") or bail('couldn\'t unlock tables!');
 
 	$x->{'id'} = $dbh->selectrow_array("SELECT LAST_INSERT_ID()")
-		|| bail("Error during SELECT LAST_INSERT_ID()!!!")
-		if !defined($x->{'id'});
+		|| bail("Error during SELECT LAST_INSERT_ID()!!!");
 	return $x;
 }
 
@@ -550,12 +542,6 @@ sub _values {	# in parallel with fields(), array of values to save to db
 		}
 	}
 	return @result;
-}
-
-sub _locktables {
-	my $class = shift;
-	my $table = $class->table();
-	return "$table WRITE";
 }
 
 sub display_edit {
@@ -701,15 +687,18 @@ sub save_edit {
 	foreach (@values) { $_ = $dbh->quote($_); }
 	
 	my $table = $class->table();
-	$dbh->do("LOCK TABLE $table WRITE") ||
+	$dbh->do("START TRANSACTION") || bail("Couldn't begin work.");
+	$dbh->do("SELECT * FROM $table WHERE ID=? FOR UPDATE", undef, scalar param('id')) ||
 		bail('couldn\'t lock table!');
 	
 	my $mod_time = $dbh->selectrow_array(
 			"SELECT Date_Modified FROM $table WHERE ID=" . param('id'))
-		|| bail("Error getting Date_Modified!");	
+		|| bail("Error getting Date_Modified!");
 
-	bail('this item has been modified by someone else!' . param('mod_time') . 'vs orig' . $mod_time)
-		if ($mod_time != param('mod_time'));
+	if ($mod_time ne param('mod_time')) {
+		$dbh->do("ROLLBACK");
+		bail('this item has been modified by someone else!' . param('mod_time') . ' vs orig ' . $mod_time);
+	}
 
 	my $statement = "UPDATE $table SET ";
 	bail("number of fields not equal to number of values when saving") if @values != @fields;
@@ -726,7 +715,7 @@ sub save_edit {
 	$dbh->do($statement)
 		|| bail("Couldn't update $table: " . $dbh->errstr
 								. "<br>$statement");
-	$dbh->do("UNLOCK TABLES") ||
+	$dbh->do("COMMIT") ||
 		bail('couldn\'t unlock tables!');
 }
 

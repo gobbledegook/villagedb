@@ -62,8 +62,4 @@ sub _error_check_add {
 	return @result;
 }
 
-sub _locktables {
-	return "Village WRITE, Heung READ, Subheung READ, Subheung2 READ";
-}
-
 1;
