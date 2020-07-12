@@ -125,7 +125,8 @@ sub load_from_db {
 	my $fields = join(',', $self->query_fields) . ',Date_Modified, Created_By, Flag, FlagNote, Modified_By';
 	my $sth = $dbh->prepare('SELECT ' . $fields . ' FROM ' . $table . ' WHERE ID=?');
 	$sth->execute($id) or bail("Error reading from database.");
-	$self->load($sth->fetchrow) || bail("$table id $id doesn't exist");
+	$self->load($sth->fetchrow) or return;
+	return 1;
 }
 
 # query_fields([$skip_id])

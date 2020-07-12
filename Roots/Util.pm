@@ -26,7 +26,7 @@ sub do_connect {
 	$dbh = DBI->connect("DBI:mysql:database=$db;host=$host", $user, $pass,
 					{ mysql_enable_utf8mb4 => 1,
 					})
-		|| bail($DBI::errstr . "$host, $db, $user, $pass");
+		|| bail("Unable to connect to database.");
 	return $dbh;
 }
 
@@ -42,7 +42,6 @@ sub bail {
 	} else {
 		croak $error;
 	}
-	print "</body></html>";
 }
 
 # get_session

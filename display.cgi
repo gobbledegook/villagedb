@@ -94,7 +94,11 @@ if ($editing && ($btn =~ m/^Save/ || $btn =~ m/^Skip/ || $btn =~ m/^Back/ || $bt
 	}
 }
 
-load_info($Q::level, $Q::id);
+unless (load_info($Q::level, $Q::id)) {
+	print header(-type=>'text/html', -status=>'404 Not Found');
+	print '404 Not Found';
+	exit;
+}
 # %info now loaded
 # it includes one Level object for each level of the hierarchy we're viewing
 my $title_suffix;
@@ -232,14 +236,15 @@ sub display_hierarchy {
 
 sub load_info {
 	my ($table, $id) = @_;
-	return unless $table;
+	return 1 unless $table;
 	my $package = "Roots::Level::$table";
 	while ($package) {	# becomes undef when we're done
 		$info{$package->table()} = my $x = $package->new();
-		$x->load_from_db($id);
+		$x->load_from_db($id) or return;
 		($package, $id) = $x->parent();
 		$id ||= $x->{up_id};
 	}
+	return 1;
 }
 
 sub delete_from_db {
@@ -379,7 +384,7 @@ sub print_subheungs {
 				$num_subsubheungs++;
 				$output .= '<li style="list-style-type: lower-alpha;">';
 				my $y = Roots::Level::Subheung2->new();
-				$y->load_from_db($subheung2_id);
+				$y->load_from_db($subheung2_id) or bail("Subheung2 id $subheung2_id doesn't exist");
 				$subheungs_hash{$y->{id}} = $y;
 				$output .= $y->_short();
 				if ($auth_name) {
