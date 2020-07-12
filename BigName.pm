@@ -157,11 +157,15 @@ sub form_add_confirm {
 
 sub form_edit {
 	my $self = shift;
-	my ($prefix) = @_;
+	my ($prefix, $Force_STC_Convert) = @_;
 	my $result = "";
 	
 	foreach my $key (@keys) {
-		$result .= _editfield($prefix . $key, $self->{$key}, $labels{$key}, 1);
+		if ($Force_STC_Convert && $key =~ /^(jp|py)$/) {
+			$result .= $self->{$key} . _hiddenfield($prefix . $key, $self->{$key}, $labels{$key}) . "<br>\n";
+		} else {
+			$result .= _editfield($prefix . $key, $self->{$key}, $labels{$key}, 1);
+		}
 	}
 	return $result;
 }

@@ -91,7 +91,7 @@ sub do_new_user {
 # returns an error string if something's wrong
 sub invalid_info {
 	# authorization check;
-	return "authorization code is invalid" if $Q::auth_code ne 'muggle';
+	return "secret code is invalid" if $Q::auth_code ne 'muggle';
 	
 	# sanity check
 	return "passwords don't match" if $Q::pwd ne $Q::pwd2;
@@ -214,7 +214,7 @@ Create a new account:
 		<td><input type="text" name="email" size="40" maxlength="60" value="$Q::email"></td>
 	</tr>
 	<tr>
-		<th>Authorization Code:</th>
+		<th>Secret Code:</th>
 		<td><input type="password" name="auth_code" size="20" maxlength="20"></td>
 	</tr>
 	<tr><td colspan="2" align="center">

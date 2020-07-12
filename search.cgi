@@ -82,6 +82,17 @@ sub do_search_other {
 	return unless $Q::text;
 	print "<hr>";
 	
+	if ($Q::text =~ /^\\/) {
+		# secret searches
+		for ($Q::text) {
+			print_results(1, 'Heung'), last if /^\\heu/i;
+			print_results(1, 'Subheung2'), last if /^\\subh.*?2/i;
+			print_results(1, 'Subheung'), last if /^\\subh/i;
+		}
+		printf '<p>Query took %.3f seconds.</p>', $Roots::Level::ELAPSED if $Roots::Level::ELAPSED;
+		return;
+	}
+	
 	my $display_text;
 	my $col = "Name";
 	
@@ -348,7 +359,7 @@ print <<EOF;
 
 where
 
-<input type=text name="z" size=50 maxlength=100 value="$Q::z">
+<input type=text name="z" size=50 maxlength=1000 value="$Q::z">
 <input type="hidden" name="btn" value="SearchAdvanced">
 <input type="submit" value="Search">
 </p>

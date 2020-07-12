@@ -190,7 +190,7 @@ if ($btn eq "Display") {
 		my $level = lc $Q::level;
 		print qq#<script>window.history.replaceState(null,"","$self/$level/$Q::id")</script>#;
 	} else {
-		if ($auth_name ne $info{$Q::level}->{created_by}) {
+		if ($auth_name ne $info{$Q::level}->{created_by} && !$Roots::Util::admin) {
 			print "Sorry, in order to delete this record, you must be signed in as the person who created this record."
 		} else {
 			@BigName::displayed = @BigName::keys;	# show all
@@ -426,6 +426,8 @@ sub print_villages {
 		. " WHERE Heung_ID=? ORDER BY Subheung_ID, Subheung2_ID";
 	if ($sortorder =~ m/^(PY|ROM)$/ ) {
 		$sql .= ", Name_$sortorder";
+	} else {
+		$sql .= ", Village.ID";
 	}
 	$sth = $dbh->prepare($sql);
 	$sth->execute($heung_id) or bail("Error reading from database.");
@@ -515,8 +517,10 @@ sub print_list {
 		}
 		$sql .= " WHERE $col=?";
 	}
-	if ($level ne "Area" && $sortorder =~ m/^(PY|ROM)$/ ) {
+	if ($level ne "Area" && $sortorder =~ m/^(PY|ROM)$/) {
 		$sql .= " ORDER BY Name_$sortorder";
+	} else {
+		$sql .= " ORDER BY $level.ID";
 	}
 	$sth = $dbh->prepare($sql);
 	$sth->execute($id || ()) or bail("Error reading from database.");

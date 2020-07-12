@@ -549,7 +549,7 @@ sub display_edit {
 	my $table = $self->table();
 	
 	print p("Edit information for this $table:");
-	print p("Note: changing the STC code will change the b5, pinyin, and jyutping"
+	print p("Note: the STC code will change the Hant, pinyin, and jyutping"
 			. " fields correspondingly (clobbering whatever's there already).");
 	
 	if ($Roots::Util::admin) {
@@ -572,7 +572,7 @@ sub display_edit {
 	foreach ($self->_addable_flds) {
 		my $label = $_fld_label{$_};
 		if ($_big{$_}) {
-			print Tr(th($label), td($self->{$_}->form_edit($_)));
+			print Tr(th($label), td($self->{$_}->form_edit($_, $Force_STC_Convert)));
 		} else {
 			print Tr(th($label),
 					 td(textfield(-name=>$_, -default=>$self->{$_},
@@ -610,7 +610,7 @@ sub display_edit {
 	));
 	print "</table>";
 	print end_form();
-	if ($table eq 'Village' && $Roots::Util::auth_name eq $self->{created_by}) {
+	if ($table eq 'Village' && ($Roots::Util::auth_name eq $self->{created_by}) || $Roots::Util::admin) {
 		print '<form method="post" action="' . script_name() . '">';
 		print '<input type="hidden" name="level" value="Village">';
 		print '<input type="hidden" name="id" value="' . $self->{id} . '">';
@@ -759,7 +759,7 @@ sub search {
 	for my $table (@tables) {
 		my $lev = "Roots::Level::$table";
 		my @tmp = $lev->query_fields; # the load() method usually takes extra metadata fields, but we can just leave those blank
-		if ($Roots::Util::admin && $table eq $level) { push @tmp, qw(Date_Modified Created_By Flag) } # FlagNote Modified_By
+		if ($Roots::Util::admin && $table eq $level) { push @tmp, qw(Date_Modified Created_By Flag FlagNote Modified_By) }
 		$num_flds{$table} = @tmp;
 		@tmp = map {"$table.$_"} @tmp;
 		push @flds, @tmp;

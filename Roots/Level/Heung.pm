@@ -27,18 +27,25 @@ sub latlon2url {
 package Roots::Level::Subheung;
 our (@ISA);
 @ISA = qw(Roots::Level);
+use Roots::Util;
 
 sub table { 'Subheung' }
 sub parent { 'Roots::Level::Heung' }
-sub display_short { print shift->_short() }
+
+sub display_short {
+	my $self = shift;
+	print $self->_short();
+	my $table = $self->table();
+	my $n = $dbh->selectrow_array("SELECT COUNT(*) FROM Village WHERE ${table}_ID=?", undef, $self->{id});
+	print " (" . $n . " villages)" if $n;
+}
 
 
 package Roots::Level::Subheung2;
 our (@ISA);
-@ISA = qw(Roots::Level);
+@ISA = qw(Roots::Level::Subheung);
 
 sub table { 'Subheung2' }
 sub parent { 'Roots::Level::Subheung' }
-sub display_short { print shift->_short() }
 
 1;
