@@ -2,16 +2,15 @@
 # and for keeping track of sessions
 
 package Roots::Util 1.0;
-require Exporter;
+use Exporter 'import';
 
 use v5.12;
 use utf8;
 use Unicode::Normalize;
-use CGI::Carp; # 'fatalsToBrowser';
+use Carp;
 
 our ($dbh, %session, $auth_name, $admin, $sortorder, $headers_done,
 			@ISA, @EXPORT);
-@ISA 	= qw(Exporter);
 @EXPORT	= qw(bail $dbh $sortorder);
 
 use DBI;
@@ -30,18 +29,16 @@ sub do_connect {
 	return $dbh;
 }
 
-# # handle errors gracefully. Alternatively, die/croak/confess with CGI::Carp fatalsToBrowser
+# handle errors gracefully
 sub bail {
 	my ($error) = @_;
 	print header(-type=>'text/html; charset=utf-8') unless $headers_done;
 	print "<h1>Unexpected Error</h1><p>$error</p>";
 	if ($auth_name) {
-		use CGI::Carp qw(fatalsToBrowser);
-		print $dbh->errstr, "<p>", $dbh->{Statement};
-		confess;
-	} else {
-		croak $error;
+		print $dbh->errstr, "<p>", $dbh->{Statement}, "<p>";
+		print Carp::longmess(); # stack trace
 	}
+	croak $error;
 }
 
 # get_session
