@@ -1,7 +1,7 @@
 CREATE TABLE `STC` (
   `STC_Code` char(4) CHARACTER SET ascii NOT NULL DEFAULT '',
   `Big5` varchar(1) CHARACTER SET utf8mb4 NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 INSERT INTO `STC` (`STC_Code`, `Big5`) VALUES
 ('0001', '一'),
@@ -7995,6 +7995,7 @@ INSERT INTO `STC` (`STC_Code`, `Big5`) VALUES
 ('4124', '皷'),
 ('9702', '乸'),
 ('9703', '咩'),
+('9704', '鯇'),
 ('4348', '炮'),
 ('8937', '砵'),
 ('3958', '畊'),

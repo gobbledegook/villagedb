@@ -4,7 +4,7 @@ CREATE TABLE `Pingyam` (
   `Readings_PY` tinyint(4) NOT NULL DEFAULT '0',
   `Jyutping` varchar(7) CHARACTER SET ascii NOT NULL,
   `Readings_JP` tinyint(4) NOT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 PACK_KEYS=1;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 INSERT INTO `Pingyam` (`Big5`, `Pinyin`, `Readings_PY`, `Jyutping`, `Readings_JP`) VALUES
 ('強', 'qiang2', 4, 'koeng4', 3),
