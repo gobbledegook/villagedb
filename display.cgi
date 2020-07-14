@@ -26,8 +26,7 @@ if (defined($Q::level) && !defined($btn) && Roots::Level->Exists($Q::level) && $
 my $url_with_path = url(-absolute=>1, -path=>1);
 my $path = substr($url_with_path, length($self));
 if (my (undef, $level, $id) = split '/', $path, 3) {
-	$level =~ s/^(.)/uc $1/e;
-	$Q::level = $level;
+	$Q::level = ucfirst $level;
 	$Q::id = $id;
 }
 
@@ -521,6 +520,9 @@ sub print_list {
 			$col = $Q::level . '_ID';
 		}
 		$sql .= " WHERE $col=?";
+		if ($level eq 'Village' && $Q::level eq 'Subheung') {
+			$sql .= ' AND Subheung2_ID IS NULL';
+		}
 	}
 	if ($level ne "Area" && $sortorder =~ m/^(PY|ROM)$/) {
 		$sql .= " ORDER BY Name_$sortorder";
@@ -575,7 +577,11 @@ sub child {
 	return $child, $num unless $level =~ m/heung$/i; # continue if Heung/Subheung
 
 	my $column = $level . '_ID';
-	my $num_villages = $dbh->selectrow_array("SELECT COUNT(*) FROM Village WHERE $column=?", undef, $id);
+	my $sql = "SELECT COUNT(*) FROM Village WHERE $column=?";
+	if ($level eq 'Subheung') {
+		$sql .= ' AND Subheung2_ID IS NULL';
+	}
+	my $num_villages = $dbh->selectrow_array($sql, undef, $id);
 	push @{$stored{$level, $id}}, $num_villages;
 	return $child, $num, $num_villages;
 }
