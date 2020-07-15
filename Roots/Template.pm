@@ -130,4 +130,24 @@ sub print_tail {
 	print "</td></tr></table>\n";
 	print "</body></html>\n";
 }
+
+sub button {
+	my ($btn, $level, $id, $url, $extra) = @_;
+	my $s = qq#<form method="post" action="$url" style="display:inline;">#;
+	$s .= qq#<input type="hidden" name="level" value="$level">#;
+	$s .= qq#<input type="hidden" name="id" value="$id">#;
+	$s .= qq#<input type="submit" name="btn" value="$btn">#;
+	if (ref $extra) {
+		while (my ($k, $v) = each %$extra) {
+			if ($k =~ /^btn/) {
+				$s .= qq#<input type="submit" name="btn" value="$v"># if $v;
+			} else {
+				$s .= qq#<input type="hidden" name="$k" value="$v">#;
+			}
+		}
+	}
+	$s .= "</form>\n";
+	return $s;
+}
+
 1;

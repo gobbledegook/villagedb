@@ -224,11 +224,11 @@ sub print_results {
 				}
 				print "</td>";
 			}
-			print qq|<td><form method="post" action="display.cgi">($_->[-1]{flag})
-<input type="hidden" name="level" value="$table">
-<input type="hidden" name="id" value="$_->[-1]{id}">
-<input type="hidden" name="searchitem" value="$n">
-<input type="submit" name="btn" value="Edit"></form></td>| if $Roots::Util::admin;
+			if ($Roots::Util::admin) {
+				print '<td>', Roots::Template::button('Edit', $table, $_->[-1]{id}, 'display.cgi', {searchitem=>$n});
+				print "[$_->[-1]{flag}] $_->[-1]{flagnote}" if $_->[-1]{flag};
+				print '</td>';
+			}
 			print "</tr>\n";
 			++$n;
 			$oldref = $_; # save this row

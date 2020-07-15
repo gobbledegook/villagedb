@@ -33,11 +33,18 @@ sub table { 'Subheung' }
 sub parent { 'Roots::Level::Heung' }
 
 sub display_short {
-	my $self = shift;
+	my ($self, $link) = @_;
+	if ($link) {
+		print '<a href="' . $self->myurl() . '">';
+	}
 	print $self->_short();
-	my $table = $self->table();
-	my $n = $dbh->selectrow_array("SELECT COUNT(*) FROM Village WHERE ${table}_ID=?", undef, $self->{id});
-	print " (" . $n . " villages)" if $n;
+	if ($link) {
+		print '</a>';
+	} else {
+		my $table = $self->table();
+		my $n = $dbh->selectrow_array("SELECT COUNT(*) FROM Village WHERE ${table}_ID=?", undef, $self->{id});
+		print " (" . $n . " villages)" if $n;
+	}
 }
 
 

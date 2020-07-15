@@ -8,7 +8,7 @@ package Roots::Level;
 
 use v5.12;
 use Carp;
-use CGI qw/:standard label/;
+use CGI qw/:standard label url/;
 use Time::HiRes qw(gettimeofday tv_interval);
 use BigName;
 use Roots::Util;
@@ -611,12 +611,8 @@ sub display_edit {
 	));
 	print "</table>";
 	print end_form();
-	if ($table eq 'Village' && ($Roots::Util::auth_name eq $self->{created_by}) || $Roots::Util::admin) {
-		print '<form method="post" action="' . script_name() . '">';
-		print '<input type="hidden" name="level" value="Village">';
-		print '<input type="hidden" name="id" value="' . $self->{id} . '">';
-		print '<input type="submit" name="btn" value="Delete">';
-		print '</form>';
+	if ($Roots::Util::auth_name eq $self->{created_by} || $Roots::Util::admin) {
+		print Roots::Template::button('Delete', $table, $self->{id}, url(-absolute => 1));
 	}
 }
 

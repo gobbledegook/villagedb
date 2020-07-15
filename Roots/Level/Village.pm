@@ -8,12 +8,13 @@ use Roots::Util;
 
 sub table { 'Village' }
 
-sub _fields	{ return qw/Heung_ID Subheung_ID Subheung2_ID id name surname/ }
+sub _fields	{ return qw/Heung_ID Subheung_ID Subheung2_ID Village_ID id name surname/ }
 
 sub parent {
 	my $self = shift;
 	my ($level, $id);
-	if ($id = $self->{Subheung2_ID}) { $level = 'Subheung2' }
+	if ($id = $self->{Village_ID}) { $level = 'Village' }
+	elsif ($id = $self->{Subheung2_ID}) { $level = 'Subheung2' }
 	elsif ($id = $self->{Subheung_ID}) { $level = 'Subheung' }
 	else { $id = $self->{Heung_ID}; $level = 'Heung' }
 	return "Roots::Level::$level", $id;
@@ -25,6 +26,8 @@ sub _values {
 	if (!$skip_id) {
 		# when we're adding, we need to set the parent id
 		# SUPER::_values will fill it in using param(), so we set it here
+		# we only need to set the immediate parent (heung/subheung/subheung2/village_id),
+		# and the mysql trigger will take care of the rest
 		my $level = param('level');
 		my $id = param('id');
 		param($level . '_ID', $id);

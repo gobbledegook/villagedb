@@ -52,3 +52,5 @@ table.search th {
 tr.hilite { background: #F0F0D0; }
 
 .band-subheung  { background: #F0F0D0; width: 100%; padding:1ex; }
+li.subheung { list-style-type: lower-alpha; }
+ol.subvillage { list-style-type: lower-roman; }

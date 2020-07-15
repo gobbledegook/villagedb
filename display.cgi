@@ -8,7 +8,7 @@ use CGI qw(-utf8 :standard);
 binmode(STDOUT, ":utf8");
 
 # initialization
-my @levels = qw( County Area Heung Subheung Subheung2 Village );
+my @levels = qw( County Area Heung Subheung Subheung2 Village Subvillage);
 my $sth;					# statement (query) handle
 my %info;					# hash of Level objects
 my $self  = url(-absolute => 1);
@@ -67,17 +67,17 @@ Roots::Util::do_connect();
 
 if ($editing && ($btn =~ m/^Save/ || $btn =~ m/^Skip/ || $btn =~ m/^Back/ || $btn =~ /^Clear/)) {
 	my $module = "Roots::Level::$Q::level";
-	$module->save_edit() if $btn =~ m/^Save/;
+	if ($btn =~ m/^Save/) {
+		$module->save_edit();
+	} elsif ($btn =~ /^Clear stc/) {
+		$dbh->do("UPDATE $Q::level SET Flag=(Flag & ~4) WHERE ID=?", undef, $Q::id) // bail($dbh->errstr);
+	} else {
+		$dbh->do("UPDATE $Q::level SET Flag=0, FlagNote='' WHERE ID=?", undef, $Q::id) // bail($dbh->errstr);
+	}
 	my $saved_ids = $session->{searchresults};
 	if ($searchitem && $searchitem <= @$saved_ids) {
 		# special handling for editing search results in sequence
 		if ($btn =~ /^Clear/) {
-			my $id = $saved_ids->[$searchitem-1];
-			if ($btn =~ /^Clear stc/) {
-				$dbh->do("UPDATE $Q::level SET Flag=(Flag & ~4) WHERE ID=?", undef, $id) // bail($dbh->errstr);
-			} else {
-				$dbh->do("UPDATE $Q::level SET Flag=0, FlagNote='' WHERE ID=?", undef, $id) // bail($dbh->errstr);
-			}
 			$searchitem++ if $searchitem < @$saved_ids; # clear and move on
 		} elsif ($btn =~ m/^Back/) {
 			$searchitem--;
@@ -87,12 +87,14 @@ if ($editing && ($btn =~ m/^Save/ || $btn =~ m/^Skip/ || $btn =~ m/^Back/ || $bt
 		$Q::id = $saved_ids->[$searchitem-1];
 		$btn = "Edit";
 		param('searchitem', $searchitem);
-	} else { #if ($btn =~ m/^Save/) { # special case to redirect
+	} else {
+		# after saving changes, redirect to the "display" page
 		print redirect("$self/" . lc($Q::level) . "/$Q::id");
 		exit;
 	}
 }
 
+my $current_level;
 unless (load_info($Q::level, $Q::id)) {
 	print header(-type=>'text/html', -status=>'404 Not Found');
 	print '404 Not Found';
@@ -113,12 +115,9 @@ Roots::Template::print_head($title_suffix, $auth_name);
 if ($btn eq "Display") {
 	if (!defined($Q::level)) { # no parameters passed, display top level
 		print h1("Roots Database"), "\n";
-		display_children();
-	} else {
-		# display requested item + children if applicable
-		display_hierarchy();
-		display_children($Q::level, $Q::id) unless $Q::level eq "Village";
 	}
+	display_hierarchy();
+	display_children($Q::level, $Q::id);
 
 } elsif ($adding) {
 	my $module = "Roots::Level::$add_level";
@@ -153,7 +152,7 @@ if ($btn eq "Display") {
 		display_hierarchy();
 		my $x = $module->do_add();
 		print "<p>$add_level ";
-			$x->display_short;
+		$x->display_short(1);
 		print " added to database.</p>";
 		$module->display_add($Q::id, 1);	# override with empty defaults
 	}
@@ -172,11 +171,6 @@ if ($btn eq "Display") {
 				p('These problems probably need to be fixed. You probably want to hit the \'back\' button and try again.');
 		}
 		$module->display_edit_confirm($session->{'old_info'});
-#	} elsif ($btn =~ m/^Save/) {
-#		# saving the changes
-#		$module->save_edit();
-#		load_info($Q::level, $Q::id);	## we need to reload the data, which has changed
-#		display_hierarchy();
 	}
 
 } elsif ($btn eq "Delete") {
@@ -185,11 +179,9 @@ if ($btn eq "Display") {
 		Delete_all();	# otherwise wreaks havoc with the default params
 		if (!$Q::level) {
 			print h1("Roots Database"), "\n";
-			display_children();
-		} else {
-			display_hierarchy();
-			display_children($Q::level, $Q::id) unless $Q::level eq "Village";
 		}
+		display_hierarchy();
+		display_children($Q::level, $Q::id);
 		my $level = lc $Q::level;
 		print qq#<script>window.history.replaceState(null,"","$self/$level/$Q::id")</script>#;
 	} else {
@@ -201,10 +193,7 @@ if ($btn eq "Display") {
 			print th({-class=>"hier"}, $Q::level), '<td class="current">';
 			$info{$Q::level}->display_full();
 			print "<center>Are you sure you want to delete this item? It'll be gone forever.";
-			print start_form("POST", "$self");
-			print hidden("level", $Q::level), hidden("id", $Q::id), hidden("del_confirm", 1);
-			print submit(-name=>"btn", -value=>"Delete");
-			print end_form();
+			print Roots::Template::button('Delete', $Q::level, $Q::id, $self, {del_confirm=>1});
 			print '</td></tr></table></center>';
 		}
 	}
@@ -238,10 +227,14 @@ sub load_info {
 	return 1 unless $table;
 	my $package = "Roots::Level::$table";
 	while ($package) {	# becomes undef when we're done
-		$info{$package->table()} = my $x = $package->new();
+		my $level = $package->table();
+		my $x = $package->new();
 		$x->load_from_db($id) or return;
 		($package, $id) = $x->parent();
 		$id ||= $x->{up_id};
+		if ($level eq 'Village' && $package->table() eq 'Village') { $level = 'Subvillage' };
+		$current_level = $level if !defined($current_level); # save the first one we encounter as the current level
+		$info{$level} = $x;
 	}
 	return 1;
 }
@@ -279,10 +272,9 @@ sub delete_from_db {
 # given hash reference and level, prints the info
 sub display_info {
 	my ($info, $level) = @_;
-	my $level_current = $level eq $Q::level;
-	
-	print "<tr>";
-	print th({-class=>"hier"}, $level), "\n";
+	my $level_current = $level eq $current_level;
+
+	print qq|<tr><th class="hier">$level</th>\n|;
 	
 	if ($level_current and not $adding ) { #$btn eq "Display" || $editing
 		print '<td class="current">';
@@ -294,16 +286,13 @@ sub display_info {
 			$info->display_full();
 			if ($auth_name) {
 				print qq|</td><td class="current">|;
-				print start_form("POST", "$self");
-				print hidden("level", $level), hidden("id", $info->{"id"});
-				print submit(-name=>"btn", -value=>"Edit");
 				my (undef, $num_c, $num_v) = child($level, $info->{"id"});
-				if ($num_c == 0 && $num_v == 0
-					&& ($auth_name eq $info{$Q::level}->{created_by} || $Roots::Util::admin)) {
+				my $delete;
+				if (!$num_c && !$num_v && ($auth_name eq $info{$level}->{created_by} || $Roots::Util::admin)) {
 					# only show Delete button if there are no children, and the same user created that record
-					print br(),submit(-name=>"btn", -value=>"Delete")
+					$delete = 'Delete';
 				}
-				print end_form();
+				print Roots::Template::button('Edit', $level, $info->{id}, $self, {btn2=>$delete});
 			}
 		}
 	} else {
@@ -324,7 +313,7 @@ sub display_children {
 		my $subheungs = print_subheungs($num_children, $id) if $auth_name || $num_children;
 		print_villages($num_villages, $id, $subheungs) if $auth_name || $num_villages;
 	} else {
-		print_list($child, $id, $num_children) if $auth_name || $num_children;
+		print_list($child, $id, $num_children) if ($auth_name && $child) || $num_children;
 		print_list('Village', $id, $num_villages) if $num_villages;
 	}
 }
@@ -334,17 +323,12 @@ sub print_subheungs {
 	my $end_par = ":</p>\n";
 	my $output = "<p>Contains $num_subheungs subheung" . ($num_subheungs == 1 ? '' : 's') . $end_par;
 	if ($auth_name) {
-		$output .= start_form("POST", "$self");
-		$output .= qq#<input type="hidden" name="level" value="$Q::level">#;
-		$output .= '<input type="hidden" name="addlevel" value="Subheung">';
-		$output .= qq#<input type="hidden" name="id" value="$heung_id">#;
-		$output .= submit(-name=>"btn", -value=>"Add Subheung");
-		$output .= end_form(), "\n";
+		$output .= Roots::Template::button('Add Subheung', $Q::level, $heung_id, $self, {addlevel=>'Subheung'});
 	}
 	print($output), return if $num_subheungs == 0;
 	
 	my $num_subsubheungs;
-	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ', GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
+	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ',Subheung.Date_Modified,Subheung.Created_By, GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
 		. ' FROM Subheung LEFT JOIN Subheung2 ON Subheung2.Up_ID=Subheung.ID LEFT JOIN Village ON Village.Subheung_ID=Subheung.ID'
 		. " WHERE Subheung.Up_ID=? GROUP BY Subheung.ID ORDER BY Subheung.ID";
 	$sth = $dbh->prepare($sql);
@@ -363,18 +347,13 @@ sub print_subheungs {
 		$output .= $x->_short();
 		$output .= '</a>' unless $num_villages == 0;
 		if ($auth_name) {
-			$output .= '<form method="post" action="' . $self . '" style="display:inline">';
-			$output .= '<input type="hidden" name="level" value="Subheung">';
-			$output .= '<input type="hidden" name="id" value="' . $x->{id} . '">';
-			$output .= '<input type="submit" name="btn" value="Edit">';
+			my %options;
 			if ($num_villages == 0) {
-				$output .= '<input type="hidden" name="addlevel" value="Village">';
-				$output .= '<input type="submit" name="btn" value="Add Village to Subheung">';
+				$options{addlevel} = 'Village';
+				$options{btn2} = 'Add Village to Subheung';
+				$options{btn3} = 'Delete' if (!defined($subsubheungs) && ($auth_name eq $x->{created_by}));
 			}
-			if (!defined($subsubheungs) && $num_villages == 0 && ($auth_name eq $x->{created_by})) {
-				$output .= '<input type="submit" name="btn" value="Delete">';
-			}
-			$output .= '</form>';
+			$output .= Roots::Template::button('Edit', 'Subheung', $x->{id}, $self, \%options);
 		}
 		$output .= "</li>\n";
 		if (defined($subsubheungs)) {
@@ -387,17 +366,14 @@ sub print_subheungs {
 				$subheungs_hash{$y->{id}} = $y;
 				$output .= $y->_short();
 				if ($auth_name) {
-					$output .= '<form method="post" action="' . $self . '" style="display:inline">';
-					$output .= '<input type="hidden" name="level" value="Subheung2">';
-					$output .= '<input type="hidden" name="id" value="' . $y->{id} . '">';
-					$output .= '<input type="submit" name="btn" value="Edit">';
 					my (undef, $num_villages) = child('Subheung2', $y->{id});
+					my %options;
 					if ($num_villages == 0) {
-						$output .= '<input type="hidden" name="addlevel" value="Village">';
-						$output .= '<input type="submit" name="btn" value="Add Village to Sub-subheung">';
-						$output .= '<input type="submit" name="btn" value="Delete">' if ($auth_name eq $y->{created_by});
+						$options{addlevel} = 'Village';
+						$options{btn2} = 'Add Village to Sub-subheung';
+						$options{btn3} = 'Delete' if ($auth_name eq $y->{created_by});
 					}
-					$output .= '</form>';
+					$output .= Roots::Template::button('Edit', 'Subheung2', $y->{id}, $self, \%options);
 				}
 				$output .= "</li>\n";
 			}
@@ -418,16 +394,14 @@ sub print_villages {
 		. (scalar(keys %$subheungs) ? ' in total' : '')
 		. ":</p>\n";
 	if ($auth_name) {
-		print start_form("POST", "$self");
-		print qq#<input type="hidden" name="level" value="$Q::level">#;
-		print '<input type="hidden" name="addlevel" value="Village">';
-		print qq#<input type="hidden" name="id" value="$heung_id">#;
-		print submit(-name=>"btn", -value=>"Add Village to Heung");
-		print end_form(), "\n";
+		print Roots::Template::button('Add Village to Heung', 'Heung', $heung_id, $self, {addlevel=>'Village'});
 	}
 	return if $num_villages == 0;
-	my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields()) . ' FROM Village'
-		. " WHERE Heung_ID=? ORDER BY Subheung_ID, Subheung2_ID";
+	my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields())
+		. ', (SELECT COUNT(*) FROM Village as Subvillage WHERE Subvillage.Village_ID=Village.ID) as num_subvillages'
+		. ' FROM Village'
+		. " WHERE Heung_ID=? AND Village_ID IS NULL"
+		. " ORDER BY Subheung_ID, Subheung2_ID";
 	if ($sortorder =~ m/^(PY|ROM)$/ ) {
 		$sql .= ", Name_$sortorder";
 	} else {
@@ -443,26 +417,18 @@ sub print_villages {
 		$x->load(@row);
 		my $subheung_id = $row[1]; # see order of columns in Roots::Level::Village::_fields
 		my $subheung2_id = $row[2];
+		my $num_subvillages = $row[-1];
 		if (!defined($last_subheung_id) || ($subheung_id != $last_subheung_id)) {
 			print "</ol>\n" if $last_subheung2_id != 0 && defined($last_subheung_id);
 			$last_subheung2_id = 0;
 			print "</ol>\n" if defined($last_subheung_id);
 			$last_subheung_id = $subheung_id || 0;
 			if ($subheung_id != 0) {
-				print qq|<div id="h$subheung_id" class="band-subheung">| . $subheungs->{$subheung_id}->_short();
+				print qq|<div id="h$subheung_id" class="band-subheung">|;
+				print $subheungs->{$subheung_id}->_short();
 				if ($auth_name) {
-					print '<form method="post" action="' . $self . '" style="display:inline">';
-					print '<input type="hidden" name="level" value="Subheung">';
-					print '<input type="hidden" name="addlevel" value="Village">';
-					print '<input type="hidden" name="id" value="' . $subheung_id . '">';
-					print submit(-name=>"btn", -value=>"Add Village to Subheung");
-					print '</form>';
-# 					print '<form method="post" action="' . $self . '" style="display:inline">';
-# 					print '<input type="hidden" name="level" value="Subheung">';
-# 					print '<input type="hidden" name="addlevel" value="Subheung2">';
-# 					print '<input type="hidden" name="id" value="' . $subheung_id . '">';
-# 					print submit(-name=>"btn", -value=>"Add Sub-subheung");
-# 					print '</form>';
+					print Roots::Template::button('Add Village to Subheung', 'Subheung', $subheung_id, $self, {addlevel=>'Village'});
+#					print Roots::Template::button('Add Sub-subheung', 'Subheung', $subheung_id, $self, {addlevel=>'Subheung2'});
 				}
 				print "</div>\n";
 			}
@@ -470,16 +436,11 @@ sub print_villages {
 		}
 		if (defined($subheung2_id) && $subheung2_id != $last_subheung2_id) {
 			print "</ol>\n" if $last_subheung2_id != 0;
-			print '<li style="list-style-type: lower-alpha;"' . ($last_subheung2_id == 0 ? ' value="1"' : '') . '>';
+			print '<li class="subheung"' . ($last_subheung2_id == 0 ? ' value="1"' : '') . '>';
 			$last_subheung2_id = $subheung2_id;
 			print $subheungs->{$subheung2_id}->_short();
 			if ($auth_name) {
-				print '<form method="post" action="' . $self . '" style="display:inline">';
-				print '<input type="hidden" name="level" value="Subheung2">';
-				print '<input type="hidden" name="addlevel" value="Village">';
-				print '<input type="hidden" name="id" value="' . $subheung2_id . '">';
-				print submit(-name=>"btn", -value=>"Add Village to Sub-subheung");
-				print '</form>';
+				print Roots::Template::button('Add Village to Sub-subheung', 'Subheung2', $subheung2_id, $self, {addlevel=>'Village'});
 			}
 			print "</li>";
 			print "<ol>";
@@ -487,13 +448,27 @@ sub print_villages {
 		print "<li>";
 		$x->display_short();
 		if ($auth_name) {
-			print '<form method="post" action="' . $self . '" style="display:inline">';
-			print '<input type="hidden" name="level" value="Village">';
-			print '<input type="hidden" name="id" value="' . $x->{id} . '">';
-			print '<input type="submit" name="btn" value="Edit">';
-			print '</form>';
+			print Roots::Template::button('Edit', 'Village', $x->{id}, $self);
 		}
 		print "</li>\n";
+		if ($num_subvillages) {
+			my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields()) . ' FROM Village'
+				. " WHERE Village_ID=? ORDER BY " . ($sortorder =~ m/^(PY|ROM)$/ ? "Name_$sortorder" : 'ID');
+			my $vsth = $dbh->prepare($sql);
+			$vsth->execute($x->{id});
+			print '<ol class="subvillage">';
+			my $v = Roots::Level::Village->new();
+			while (my @vrow = $vsth->fetchrow_array()) {
+				$v->load(@vrow);
+				print "<li>";
+				$v->display_short();
+				if ($auth_name) {
+					print Roots::Template::button('Edit', 'Village', $v->{id}, $self);
+				}
+				print "</li>";
+			}
+			print "</ol>";
+		}
 	}
 	print "</ol>\n" if $last_subheung2_id != 0;
 	print "</ol>";
@@ -501,33 +476,32 @@ sub print_villages {
 
 sub print_list {
 	my ($level, $id, $num) = @_;
+	my $table = $level;
+	if ($level eq 'Subvillage') {
+		$table = 'Village';
+	}
+	print "<p>Contains $num " . ($num == 1 ? $level : plural($level)) . ":</p>\n";
 	if ($auth_name) {
-		print start_form("POST", "$self");
-		print qq#<input type="hidden" name="level" value="$Q::level">#;
-		print hidden(-name=>"addlevel", -default=>[$level]);
-		print qq#<input type="hidden" name="id" value="$id">#;
-		print submit(-name=>"btn", -value=>"Add $level");
-		print end_form(), "\n";
+		print Roots::Template::button("Add $level", $Q::level, $id, $self, {addlevel=>$table});
 	}
 	return if $num == 0;
 
-	print "<p>Contains $num " . ($num == 1 ? $level : plural($level)) . ":</p>\n";
-	my $module = "Roots::Level::$level";
-	my $sql = 'SELECT ' . join(',', $module->query_fields()) . ' FROM ' . $level;
+	my $module = "Roots::Level::$table";
+	my $sql = 'SELECT ' . join(',', $module->query_fields()) . ' FROM ' . $table;
 	if ($id) {
 		my $col = 'Up_ID';
-		if ($level eq 'Village') {
+		if ($table eq 'Village') {
 			$col = $Q::level . '_ID';
 		}
 		$sql .= " WHERE $col=?";
-		if ($level eq 'Village' && $Q::level eq 'Subheung') {
+		if ($table eq 'Village' && $Q::level eq 'Subheung') {
 			$sql .= ' AND Subheung2_ID IS NULL';
 		}
 	}
-	if ($level ne "Area" && $sortorder =~ m/^(PY|ROM)$/) {
+	if ($table ne "Area" && $sortorder =~ m/^(PY|ROM)$/) {
 		$sql .= " ORDER BY Name_$sortorder";
 	} else {
-		$sql .= " ORDER BY $level.ID";
+		$sql .= " ORDER BY $table.ID";
 	}
 	$sth = $dbh->prepare($sql);
 	$sth->execute($id || ()) or bail("Error reading from database.");
@@ -537,7 +511,8 @@ sub print_list {
 	while (@row = $sth->fetchrow_array()) {
 		print "<li>";
 		$x->load(@row);
-		$x->display_short(); print "</li>\n";
+		$x->display_short(1);
+		print "</li>\n";
 	}
 	print "</ol>";
 }
@@ -562,8 +537,13 @@ my %children = qw(County    Area
 # The third returned argument is the number of villages, for Heungs and Subheungs.
 sub child {
 	my ($level, $id) = @_;
-	return if $level eq 'Village';
+	return if $level eq 'Subvillage';
 	return @{$stored{$level, $id}} if $stored{$level, $id};	# using multi-dimensional array emulation
+	if ($level eq 'Village') {
+		# villages can have subvillages
+		my $n = $dbh->selectrow_array("SELECT COUNT(*) FROM Village WHERE Village_ID=?", undef, $id);
+		return 'Subvillage', $n;
+	}
 	
 	my $child = $children{$level} || "County";
 	my $sql = 'SELECT COUNT(*) FROM ' . $child;

@@ -235,7 +235,8 @@ CREATE TABLE `Village` (
   `Modified_By` varchar(20) DEFAULT NULL,
   `Heung_ID` smallint(5) UNSIGNED NOT NULL DEFAULT '0',
   `Subheung_ID` smallint(5) UNSIGNED DEFAULT NULL,
-  `Subheung2_ID` smallint(5) UNSIGNED DEFAULT NULL
+  `Subheung2_ID` smallint(5) UNSIGNED DEFAULT NULL,
+  `Village_ID` mediumint(6) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 --
@@ -243,7 +244,11 @@ CREATE TABLE `Village` (
 --
 DELIMITER $$
 CREATE TRIGGER `insert_heung_ids` BEFORE INSERT ON `Village` FOR EACH ROW BEGIN
-IF new.Subheung_ID IS NOT NULL THEN
+IF new.Village_ID IS NOT NULL THEN
+SET new.Heung_ID = (SELECT Heung_ID FROM Village WHERE ID=new.Village_ID);
+SET new.Subheung_ID = (SELECT Subheung_ID FROM Village WHERE ID=new.Village_ID);
+SET new.Subheung2_ID = (SELECT Subheung2_ID FROM Village WHERE ID=new.Village_ID);
+ELSEIF new.Subheung_ID IS NOT NULL THEN
 SET new.Heung_ID = (SELECT Up_ID FROM Subheung WHERE ID=new.Subheung_ID);
 ELSEIF new.Subheung2_ID IS NOT NULL THEN
 SET @hid = 0;
@@ -476,6 +481,7 @@ ALTER TABLE `Village`
   ADD CONSTRAINT `Village_ibfk_1` FOREIGN KEY (`Heung_ID`) REFERENCES `Heung` (`ID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `Village_ibfk_2` FOREIGN KEY (`Subheung_ID`) REFERENCES `Subheung` (`ID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `Village_ibfk_3` FOREIGN KEY (`Subheung2_ID`) REFERENCES `Subheung2` (`ID`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `subvillage` FOREIGN KEY (`Village_ID`) REFERENCES `Village` (`ID`) ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
