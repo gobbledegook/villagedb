@@ -514,7 +514,7 @@ INSERT INTO `Pingyam` (`Big5`, `Pinyin`, `Readings_PY`, `Jyutping`, `Readings_JP
 ('崗', 'gang1', 2, 'gong1', 1),
 ('舡', 'gang1', 2, 'gong1', 2),
 ('扛', 'gang1', 2, 'gong1', 1),
-('乾', 'gan1', 2, 'gon1', 2),
+('乾', 'qian2', 2, 'kin4', 2),
 ('枸', 'gou1', 2, 'gau2', 2),
 ('高', 'gao1', 2, 'gou1', 1),
 ('睪', 'gao1', 2, 'jik6', 1),

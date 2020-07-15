@@ -1,7 +1,7 @@
 # utility functions for accessing the database
 # and for keeping track of sessions
 
-package Roots::Util 1.0;
+package Roots::Util 1.1;
 use Exporter 'import';
 
 use v5.12;
