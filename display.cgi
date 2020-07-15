@@ -292,7 +292,7 @@ sub display_info {
 					# only show Delete button if there are no children, and the same user created that record
 					$delete = 'Delete';
 				}
-				print Roots::Template::button('Edit', $level, $info->{id}, $self, {btn2=>$delete});
+				print Roots::Template::button('Edit', $level eq 'Subvillage' ? 'Village' : $level, $info->{id}, $self, {btn2=>$delete});
 			}
 		}
 	} else {
@@ -328,7 +328,7 @@ sub print_subheungs {
 	print($output), return if $num_subheungs == 0;
 	
 	my $num_subsubheungs;
-	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ',Subheung.Date_Modified,Subheung.Created_By, GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
+	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ',Subheung.Date_Modified,Subheung.Created_By,Subheung.Flag,Subheung.FlagNote, GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
 		. ' FROM Subheung LEFT JOIN Subheung2 ON Subheung2.Up_ID=Subheung.ID LEFT JOIN Village ON Village.Subheung_ID=Subheung.ID'
 		. " WHERE Subheung.Up_ID=? GROUP BY Subheung.ID ORDER BY Subheung.ID";
 	$sth = $dbh->prepare($sql);
@@ -354,6 +354,7 @@ sub print_subheungs {
 				$options{btn3} = 'Delete' if (!defined($subsubheungs) && ($auth_name eq $x->{created_by}));
 			}
 			$output .= Roots::Template::button('Edit', 'Subheung', $x->{id}, $self, \%options);
+			$output .= qq| <span class="warn">[$x->{flag}] $x->{flagnote}</span>| if $Roots::Util::admin && $x->{flag};
 		}
 		$output .= "</li>\n";
 		if (defined($subsubheungs)) {
@@ -374,6 +375,7 @@ sub print_subheungs {
 						$options{btn3} = 'Delete' if ($auth_name eq $y->{created_by});
 					}
 					$output .= Roots::Template::button('Edit', 'Subheung2', $y->{id}, $self, \%options);
+					$output .= qq| <span class="warn">[$y->{flag}] $y->{flagnote}</span>| if $Roots::Util::admin && $y->{flag};
 				}
 				$output .= "</li>\n";
 			}
@@ -398,6 +400,7 @@ sub print_villages {
 	}
 	return if $num_villages == 0;
 	my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields())
+		. ',Date_Modified, Created_By, Flag, FlagNote'
 		. ', (SELECT COUNT(*) FROM Village as Subvillage WHERE Subvillage.Village_ID=Village.ID) as num_subvillages'
 		. ' FROM Village'
 		. " WHERE Heung_ID=? AND Village_ID IS NULL"
@@ -449,10 +452,11 @@ sub print_villages {
 		$x->display_short();
 		if ($auth_name) {
 			print Roots::Template::button('Edit', 'Village', $x->{id}, $self);
+			print qq| <span class="warn">[$x->{flag}] $x->{flagnote}</span>| if $Roots::Util::admin && $x->{flag};
 		}
 		print "</li>\n";
 		if ($num_subvillages) {
-			my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields()) . ' FROM Village'
+			my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields()) . ',Date_Modified, Created_By, Flag, FlagNote FROM Village'
 				. " WHERE Village_ID=? ORDER BY " . ($sortorder =~ m/^(PY|ROM)$/ ? "Name_$sortorder" : 'ID');
 			my $vsth = $dbh->prepare($sql);
 			$vsth->execute($x->{id});
@@ -464,6 +468,7 @@ sub print_villages {
 				$v->display_short();
 				if ($auth_name) {
 					print Roots::Template::button('Edit', 'Village', $v->{id}, $self);
+					print qq| <span class="warn">[$v->{flag}] $v->{flagnote}</span>| if $Roots::Util::admin && $v->{flag};
 				}
 				print "</li>";
 			}
