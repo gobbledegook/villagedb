@@ -1,1 +1,54 @@
-/* style.css *//* by Dominic Yu 2000 Aug 15 *//* Just our generic stylesheet. */body { color: black; background: white url(parchment.gif) repeat-y; }// h1, h2 { text-align: center; }/* Link colors and hiliting... *//* Fails badly in long links, PRE formatted text in MSIE4.5; non-functional in Mozilla  */A:link     			{ color: blue; }A:visited   		{ color: #330066; }A:hover   			{ color: #990000; text-decoration: underline; }A:active			{ color: #990000; text-decoration: underline; }/* top left corner text */.logo{	font-size: larger;	font-weight: bold;}/* last modified/send-comments-to line */.admin { font-size: smaller; text-align: center; }/* submenu*/.submenu { padding-left: 1em; border-left: thin solid maroon; font-size: small; }/* stuff i've added 11019 */td.header { vertical-align: text-bottom; }th { vertical-align: text-top; text-align: right; }td { vertical-align: text-top; }th.hier { background: #CC9966; }td.current { background: #FFFF99; }.changed { color: blue; }.error { color: red; }.warn { color: purple; }// table.search { text-align: center; }table.search td { 	padding:2px;	padding-left:10px;	margin:0px;	border-top:1px solid #AAA;}table.search th { 	padding-left:10px;	text-align: left;}.num { text-align: right; }tr.hilite { background: #F0F0D0; }.band-subheung  { background: #F0F0D0; width: 100%; padding:1ex; }
+/* style.css */
+/* by Dominic Yu 2000 Aug 15 */
+/* Just our generic stylesheet. */
+
+body { color: black; background: white url(parchment.gif) repeat-y; }
+
+// h1, h2 { text-align: center; }
+
+/* Link colors and hiliting... */
+/* Fails badly in long links, PRE formatted text in MSIE4.5; non-functional in Mozilla  */
+A:link     			{ color: blue; }
+A:visited   		{ color: #330066; }
+A:hover   			{ color: #990000; text-decoration: underline; }
+A:active			{ color: #990000; text-decoration: underline; }
+
+/* top left corner text */
+.logo
+{
+	font-size: larger;
+	font-weight: bold;
+}
+
+/* last modified/send-comments-to line */
+.admin { font-size: smaller; text-align: center; }
+
+.submenu { padding-left: 1em; border-left: thin solid maroon; font-size: small; }
+
+td.header { vertical-align: text-bottom; }
+
+th { vertical-align: text-top; text-align: right; }
+td { vertical-align: text-top; }
+th.hier { background: #CC9966; }
+td.current { background: #FFFF99; }
+
+.changed { color: blue; }
+.error { color: red; }
+.warn { color: purple; }
+
+// table.search { text-align: center; }
+table.search td {
+	padding:2px;
+	padding-left:10px;
+	margin:0px;
+	border-top:1px solid #AAA;
+}
+table.search th {
+	padding-left:10px;
+	text-align: left;
+}
+
+.num { text-align: right; }
+tr.hilite { background: #F0F0D0; }
+
+.band-subheung  { background: #F0F0D0; width: 100%; padding:1ex; }
