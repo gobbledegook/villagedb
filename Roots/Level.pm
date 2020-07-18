@@ -270,9 +270,14 @@ sub _full {
 		}
 		$result .= "</td></tr><tr>" if @fields; # if there's anything left, prepare a new row
 	}
+	if ($self->{flagnote} && !$self->{flag}) {
+		# show note if no internal flag set
+		$result .= qq|</td></tr><tr><td colspan="$m">|;
+		$result .= $self->{flagnote};
+	}
 	if ($Roots::Util::admin) {
 		$result .= qq|</td></tr><tr><td colspan="$m">Flag: | . $self->{flag};
-		$result .= ' Note: ' . $self->{flagnote} if $self->{flagnote};
+		$result .= ' Note: ' . $self->{flagnote} if $self->{flag} && $self->{flagnote};
 		$result .= '<br>created: ' . $self->{created_by};
 		$result .= ' modified: ' . $self->{mod_time} if $self->{mod_time};
 	}

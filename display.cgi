@@ -436,6 +436,7 @@ sub print_villages {
 		}
 		print "<li>";
 		$x->display_short();
+		print qq| $x->{flagnote}| if $x->{flagnote} && !$x->{flag};
 		if ($auth_name) {
 			print Roots::Template::button('Edit', 'Village', $x->{id}, $self);
 			print qq| <span class="warn">[$x->{flag}] $x->{flagnote}</span>| if $Roots::Util::admin && $x->{flag};
@@ -452,6 +453,7 @@ sub print_villages {
 				$v->load(@vrow);
 				print "<li>";
 				$v->display_short();
+				print qq| $v->{flagnote}| if $v->{flagnote} && !$v->{flag};
 				if ($auth_name) {
 					print Roots::Template::button('Edit', 'Village', $v->{id}, $self);
 					print qq| <span class="warn">[$v->{flag}] $v->{flagnote}</span>| if $Roots::Util::admin && $v->{flag};
