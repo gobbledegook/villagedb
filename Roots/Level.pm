@@ -122,7 +122,7 @@ sub load_from_db {
 	my $table = $self->table();
 	$id || bail("no $table id specified");
 	
-	my $fields = join(',', $self->query_fields) . ',Date_Modified, Created_By, Flag, FlagNote, Modified_By';
+	my $fields = join(',', $self->query_fields) . ',Date_Modified, Created_By, Flag, FlagNote';
 	my $sth = $dbh->prepare('SELECT ' . $fields . ' FROM ' . $table . ' WHERE ID=?');
 	$sth->execute($id) or bail("Error reading from database.");
 	$self->load($sth->fetchrow) or return;
@@ -173,7 +173,6 @@ sub load {
 	$self->{created_by} = shift;	## for delete
 	$self->{flag} = shift;			## for admin
 	$self->{flagnote} = shift;		## for admin
-	$self->{mod_by} = shift;		## for admin
 
 	return 1;
 }
@@ -275,7 +274,7 @@ sub _full {
 		$result .= qq|</td></tr><tr><td colspan="$m">Flag: | . $self->{flag};
 		$result .= ' Note: ' . $self->{flagnote} if $self->{flagnote};
 		$result .= '<br>created: ' . $self->{created_by};
-		$result .= ' modified: ' . $self->{mod_by} if $self->{mod_by};
+		$result .= ' modified: ' . $self->{mod_time} if $self->{mod_time};
 	}
 	return $result;
 }
@@ -491,7 +490,6 @@ sub do_add {
 	my $x = $class->new;
 	$x->load(@values);
 	foreach (@values) {
-		next if $_ eq 'LAST_INSERT_ID()';
 		$_ = $dbh->quote($_);
 	}
 	push @values, 'NOW()', $dbh->quote($Roots::Util::auth_name);
@@ -568,6 +566,7 @@ sub display_edit {
 		hidden(-name=>"id", -default=>$self->{"id"}, -override=>1),
 		hidden("form", "edit");
 	print hidden("searchitem") if param("searchitem");
+	print hidden("mod_time", $self->{mod_time}) if $self->{mod_time};
 
 	print "<table border=0 cellpadding=5>";
 	foreach ($self->_addable_flds) {
@@ -594,7 +593,7 @@ sub display_edit {
 		print textfield(-name=>'flagnote',-default=>$self->{flagnote},
 						-size=>45, -maxlength=>255, -override=>1);
 		print '<br>created: ' . $self->{created_by};
-		print ' modified: ' . $self->{mod_by} if $self->{mod_by};
+		print ' modified: ' . $self->{mod_time} if $self->{mod_time};
 		print "<br>id $self->{id}";
 	}
 	my $searchitem_index = param("searchitem");
@@ -688,10 +687,7 @@ sub save_edit {
 	$dbh->do("SELECT * FROM $table WHERE ID=? FOR UPDATE", undef, scalar param('id')) ||
 		bail('couldn\'t lock table!');
 	
-	my $mod_time = $dbh->selectrow_array(
-			"SELECT Date_Modified FROM $table WHERE ID=" . param('id'))
-		|| bail("Error getting Date_Modified!");
-
+	my $mod_time = $dbh->selectrow_array("SELECT Date_Modified FROM $table WHERE ID=?", undef, scalar param('id'));
 	if ($mod_time ne param('mod_time')) {
 		$dbh->do("ROLLBACK");
 		bail('this item has been modified by someone else!' . param('mod_time') . ' vs orig ' . $mod_time);
@@ -702,7 +698,7 @@ sub save_edit {
 	foreach (@fields) {
 		$statement .= ($_ . '=' . shift(@values) . ', ');
 	}
-	$statement .= "Modified_By=" . $dbh->quote($Roots::Util::auth_name);
+	$statement .= "Date_Modified=NOW()";
 	if ($Roots::Util::admin) {
 		$statement .= ",Flag=" . $dbh->quote(scalar param('flag'));
 		$statement .= ",FlagNote=" . $dbh->quote(scalar param('flagnote'));
@@ -756,7 +752,7 @@ sub search {
 	for my $table (@tables) {
 		my $lev = "Roots::Level::$table";
 		my @tmp = $lev->query_fields; # the load() method usually takes extra metadata fields, but we can just leave those blank
-		if ($Roots::Util::admin && $table eq $level) { push @tmp, qw(Date_Modified Created_By Flag FlagNote Modified_By) }
+		if ($Roots::Util::admin && $table eq $level) { push @tmp, qw(Date_Modified Created_By Flag FlagNote) }
 		$num_flds{$table} = @tmp;
 		@tmp = map {"$table.$_"} @tmp;
 		push @flds, @tmp;

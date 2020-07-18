@@ -154,7 +154,7 @@ sub do_search_superuser {
 	printf '<p>Query took %.3f seconds.</p>', $Roots::Level::ELAPSED;
 # 	} else {
 # 		my $x = Roots::Level->new($Q::table);
-# 		my $fields = join(',', $x->query_fields(), qw(Date_Modified Created_By Flag FlagNote Modified_By));
+# 		my $fields = join(',', $x->query_fields(), qw(Date_Modified Created_By Flag FlagNote));
 # 		my $sth = $dbh->prepare("SELECT $fields FROM $Q::table WHERE $Q::z");
 # 		$sth->execute() or bail("Error reading from database.");
 # 		my @saved_ids;

@@ -286,13 +286,8 @@ sub display_info {
 			$info->display_full();
 			if ($auth_name) {
 				print qq|</td><td class="current">|;
-				my (undef, $num_c, $num_v) = child($level, $info->{"id"});
-				my $delete;
-				if (!$num_c && !$num_v && ($auth_name eq $info{$level}->{created_by} || $Roots::Util::admin)) {
-					# only show Delete button if there are no children, and the same user created that record
-					$delete = 'Delete';
-				}
-				print Roots::Template::button('Edit', $level eq 'Subvillage' ? 'Village' : $level, $info->{id}, $self, {btn2=>$delete});
+				my $table = $level eq 'Subvillage' ? 'Village' : $level;
+				print Roots::Template::button('Edit', $table, $info->{id}, $self);
 			}
 		}
 	} else {
@@ -328,7 +323,7 @@ sub print_subheungs {
 	print($output), return if $num_subheungs == 0;
 	
 	my $num_subsubheungs;
-	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ',Subheung.Date_Modified,Subheung.Created_By,Subheung.Flag,Subheung.FlagNote, GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
+	my $sql = 'SELECT ' . join(',', map {"Subheung.$_"} Roots::Level::Subheung->query_fields()) . ', GROUP_CONCAT(DISTINCT Subheung2.ID ORDER BY 1), COUNT(DISTINCT Village.ID)'
 		. ' FROM Subheung LEFT JOIN Subheung2 ON Subheung2.Up_ID=Subheung.ID LEFT JOIN Village ON Village.Subheung_ID=Subheung.ID'
 		. " WHERE Subheung.Up_ID=? GROUP BY Subheung.ID ORDER BY Subheung.ID";
 	$sth = $dbh->prepare($sql);
@@ -351,10 +346,8 @@ sub print_subheungs {
 			if ($num_villages == 0) {
 				$options{addlevel} = 'Village';
 				$options{btn2} = 'Add Village to Subheung';
-				$options{btn3} = 'Delete' if (!defined($subsubheungs) && ($auth_name eq $x->{created_by}));
 			}
 			$output .= Roots::Template::button('Edit', 'Subheung', $x->{id}, $self, \%options);
-			$output .= qq| <span class="warn">[$x->{flag}] $x->{flagnote}</span>| if $Roots::Util::admin && $x->{flag};
 		}
 		$output .= "</li>\n";
 		if (defined($subsubheungs)) {
@@ -372,7 +365,6 @@ sub print_subheungs {
 					if ($num_villages == 0) {
 						$options{addlevel} = 'Village';
 						$options{btn2} = 'Add Village to Sub-subheung';
-						$options{btn3} = 'Delete' if ($auth_name eq $y->{created_by});
 					}
 					$output .= Roots::Template::button('Edit', 'Subheung2', $y->{id}, $self, \%options);
 					$output .= qq| <span class="warn">[$y->{flag}] $y->{flagnote}</span>| if $Roots::Util::admin && $y->{flag};
@@ -528,9 +520,7 @@ sub plural {
 	return $x . "s";
 }
 
-BEGIN {	# a protected, early-execution block
-# we cache the values so we don't have to make so many sql calls.
-my %stored;
+BEGIN {
 my %children = qw(County    Area
 				  Area      Heung
 				  Heung     Subheung
@@ -543,7 +533,6 @@ my %children = qw(County    Area
 sub child {
 	my ($level, $id) = @_;
 	return if $level eq 'Subvillage';
-	return @{$stored{$level, $id}} if $stored{$level, $id};	# using multi-dimensional array emulation
 	if ($level eq 'Village') {
 		# villages can have subvillages
 		my $n = $dbh->selectrow_array("SELECT COUNT(*) FROM Village WHERE Village_ID=?", undef, $id);
@@ -557,8 +546,6 @@ sub child {
 		$sql .= " WHERE $col=?";
 	}
 	my $num = $dbh->selectrow_array($sql, undef, $id || ());
-
-	$stored{$level, $id} = [$child, $num];
 	return $child, $num unless $level =~ m/heung$/i; # continue if Heung/Subheung
 
 	my $column = $level . '_ID';
@@ -567,7 +554,6 @@ sub child {
 		$sql .= ' AND Subheung2_ID IS NULL';
 	}
 	my $num_villages = $dbh->selectrow_array($sql, undef, $id);
-	push @{$stored{$level, $id}}, $num_villages;
 	return $child, $num, $num_villages;
 }
 }

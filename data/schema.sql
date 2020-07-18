@@ -2,7 +2,7 @@
 -- version 4.8.5
 -- https://www.phpmyadmin.net/
 --
--- Generation Time: Jul 09, 2020 at 01:27 PM
+-- Generation Time: Jul 17, 2020 at 11:53 PM
 -- Server version: 5.7.28-log
 -- PHP Version: 7.1.22
 
@@ -32,11 +32,10 @@ CREATE TABLE `Area` (
   `Up_ID` tinyint(2) UNSIGNED NOT NULL DEFAULT '0',
   `Num` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `Date_Created` datetime DEFAULT NULL,
-  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Date_Modified` datetime DEFAULT NULL,
   `Created_By` varchar(20) DEFAULT NULL,
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
-  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
-  `Modified_By` varchar(20) DEFAULT NULL
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
@@ -53,11 +52,10 @@ CREATE TABLE `County` (
   `Name_JP` varchar(150) NOT NULL DEFAULT '',
   `Name_STC` varchar(100) NOT NULL DEFAULT '',
   `Date_Created` datetime DEFAULT NULL,
-  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Date_Modified` datetime DEFAULT NULL,
   `Created_By` varchar(20) DEFAULT NULL,
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
-  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
-  `Modified_By` varchar(20) DEFAULT NULL
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
@@ -82,11 +80,10 @@ CREATE TABLE `Heung` (
   `Map_Location` varchar(7) DEFAULT NULL,
   `latlon` varchar(21) CHARACTER SET ascii NOT NULL,
   `Date_Created` datetime DEFAULT NULL,
-  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Date_Modified` datetime DEFAULT NULL,
   `Created_By` varchar(20) DEFAULT NULL,
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
-  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
-  `Modified_By` varchar(20) DEFAULT NULL
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
@@ -141,11 +138,10 @@ CREATE TABLE `Subheung` (
   `Name_JP` varchar(150) NOT NULL DEFAULT '',
   `Name_STC` varchar(100) NOT NULL DEFAULT '',
   `Date_Created` datetime DEFAULT NULL,
-  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Date_Modified` datetime DEFAULT NULL,
   `Created_By` varchar(20) DEFAULT NULL,
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
-  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
-  `Modified_By` varchar(20) DEFAULT NULL
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
@@ -163,11 +159,10 @@ CREATE TABLE `Subheung2` (
   `Name_JP` varchar(150) NOT NULL DEFAULT '',
   `Name_STC` varchar(100) NOT NULL DEFAULT '',
   `Date_Created` datetime DEFAULT NULL,
-  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Date_Modified` datetime DEFAULT NULL,
   `Created_By` varchar(20) DEFAULT NULL,
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
-  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
-  `Modified_By` varchar(20) DEFAULT NULL
+  `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 PACK_KEYS=1;
 
 -- --------------------------------------------------------
@@ -228,11 +223,10 @@ CREATE TABLE `Village` (
   `Surnames_JP` varchar(150) NOT NULL DEFAULT '',
   `Surnames_STC` varchar(100) NOT NULL DEFAULT '',
   `Date_Created` datetime DEFAULT NULL,
-  `Date_Modified` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `Date_Modified` datetime DEFAULT NULL,
   `Created_By` varchar(20) DEFAULT NULL,
   `Flag` tinyint(3) UNSIGNED NOT NULL DEFAULT '0',
   `FlagNote` varchar(1000) CHARACTER SET utf8mb4 NOT NULL,
-  `Modified_By` varchar(20) DEFAULT NULL,
   `Heung_ID` smallint(5) UNSIGNED NOT NULL DEFAULT '0',
   `Subheung_ID` smallint(5) UNSIGNED DEFAULT NULL,
   `Subheung2_ID` smallint(5) UNSIGNED DEFAULT NULL,
@@ -386,7 +380,8 @@ ALTER TABLE `Village`
   ADD KEY `Name_PY` (`Name_PY`),
   ADD KEY `Heung_ID` (`Heung_ID`),
   ADD KEY `Subheung_ID` (`Subheung_ID`),
-  ADD KEY `Subheung2_ID` (`Subheung2_ID`);
+  ADD KEY `Subheung2_ID` (`Subheung2_ID`),
+  ADD KEY `subvillage` (`Village_ID`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -480,7 +475,7 @@ ALTER TABLE `surnames_index`
 ALTER TABLE `Village`
   ADD CONSTRAINT `Village_ibfk_1` FOREIGN KEY (`Heung_ID`) REFERENCES `Heung` (`ID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `Village_ibfk_2` FOREIGN KEY (`Subheung_ID`) REFERENCES `Subheung` (`ID`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `Village_ibfk_3` FOREIGN KEY (`Subheung2_ID`) REFERENCES `Subheung2` (`ID`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `Village_ibfk_3` FOREIGN KEY (`Subheung2_ID`) REFERENCES `Subheung2` (`ID`) ON UPDATE CASCADE,
   ADD CONSTRAINT `subvillage` FOREIGN KEY (`Village_ID`) REFERENCES `Village` (`ID`) ON UPDATE CASCADE;
 COMMIT;
 
