@@ -26,6 +26,7 @@ foreach my $table (qw(Heung Subheung Subheung2 Village)) {
 	
 		my $total = 0;
 		while (my ($id, $u8, $rom) = $sth->fetchrow_array()) {
+		    $rom =~ s/^villages formerly under the jurisdiction of //;
 			my @u8items = split /, */, $u8;
 			my @romitems = split /, */, $rom;
 			for my $j (0..$#u8items) {

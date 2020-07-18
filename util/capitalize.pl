@@ -22,7 +22,12 @@ foreach my $table (qw(Heung Subheung Subheung2 Village)) {
 		$sth->execute();
 	
 		while (my ($id, $u8, $rom) = $sth->fetchrow_array()) {
+		    next if $rom =~ /^villages formerly under the jurisdiction of /;
+		    next if $rom =~ /Sub-heung/;
+		    next if $rom =~ /^There is a market.*/; # just skip these
 			my $newrom = $rom =~ s/((\w)(\w*))/exception($1) ? $1 : uc($2).lc($3)/gre;
+			$newrom =~ s/, */, /g;
+			$newrom =~ s/Others$/others/g;
 			if ($newrom ne $rom) {
 				say "$id $rom -> $newrom";
 				$total++;
@@ -35,5 +40,5 @@ foreach my $table (qw(Heung Subheung Subheung2 Village)) {
 }
 
 sub exception {
-	return $_[0] =~ m/^(various|fishermen|others|consisting|of|four|or|five|six|small)$/;
+	return $_[0] =~ m/^(various|fishermen|others|consisting|of|four|or|five|six|small|floating|population|surnames)$/i;
 }

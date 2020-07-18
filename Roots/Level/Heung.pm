@@ -14,7 +14,7 @@ sub display_short {
 	my $self = shift;
 	$self->SUPER::display_short(@_);
 	my $n = $dbh->selectrow_array('SELECT COUNT(*) FROM Village WHERE Heung_ID=?', undef, $self->{id});
-	print " (" . $n . " villages)" if $n;
+	print " (" . $n . " village" . ($n == 1 ? '' : 's') . ")" if $n;
 	if ($self->{latlon}) {
 		print ' [<a href="' . $self->latlon2url($self->{latlon}) . '" target="_blank">map</a>]';
 	}
@@ -102,7 +102,7 @@ sub display_short {
 	} else {
 		my $table = $self->table();
 		my $n = $dbh->selectrow_array("SELECT COUNT(*) FROM Village WHERE ${table}_ID=?", undef, $self->{id});
-		print " (" . $n . " villages)" if $n;
+		print " (" . $n . " village" . ($n == 1 ? '' : 's') . ")" if $n;
 	}
 }
 

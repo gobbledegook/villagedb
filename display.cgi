@@ -65,21 +65,15 @@ $session->{'page'} = "$self" . ($Q::level ? ('/' . lc($Q::level) . "/$Q::id") : 
 
 Roots::Util::do_connect();
 
-if ($editing && ($btn =~ m/^Save/ || $btn =~ m/^Skip/ || $btn =~ m/^Back/ || $btn =~ /^Clear/)) {
+if ($editing && ($btn =~ m/^Save/ || $btn =~ m/^Skip/ || $btn =~ m/^Back/)) {
 	my $module = "Roots::Level::$Q::level";
 	if ($btn =~ m/^Save/) {
 		$module->save_edit();
-	} elsif ($btn =~ /^Clear stc/) {
-		$dbh->do("UPDATE $Q::level SET Flag=(Flag & ~4) WHERE ID=?", undef, $Q::id) // bail($dbh->errstr);
-	} else {
-		$dbh->do("UPDATE $Q::level SET Flag=0, FlagNote='' WHERE ID=?", undef, $Q::id) // bail($dbh->errstr);
 	}
 	my $saved_ids = $session->{searchresults};
 	if ($searchitem && $searchitem <= @$saved_ids) {
 		# special handling for editing search results in sequence
-		if ($btn =~ /^Clear/) {
-			$searchitem++ if $searchitem < @$saved_ids; # clear and move on
-		} elsif ($btn =~ m/^Back/) {
+		if ($btn =~ m/^Back/) {
 			$searchitem--;
 		} elsif ($btn =~ /^Skip/) {
 			$searchitem++;

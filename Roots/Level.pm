@@ -600,8 +600,6 @@ sub display_edit {
 	my $searchitem_max = $searchitem_index ? @{$Roots::Util::session{searchresults}} : 0;
 	print Tr(td({-colspan=>2},
 		p({-align=>"center"}, submit(-name=>"btn", -value=>"Submit")),
-		$Roots::Util::admin ? p({-align=>"center"}, submit(-name=>"btn", -value=>"Clear stc_mismatch"),
-			submit(-name=>"btn", -value=>"Clear all flags and notes")) : (),
 		$searchitem_index ? p({-align=>"center"},
 			$searchitem_index > 1 ? submit(-name=>"btn", -value=>"Back to previous") : (),
 		 	"editing $searchitem_index of $searchitem_max",
