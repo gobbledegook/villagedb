@@ -8,7 +8,7 @@ use CGI 'param';
 sub table { 'Area' }
 sub parent { 'Roots::Level::County' }
 
-sub _fields	{ return qw/num up_id id/ }
+sub _fields	{ return qw/num name up_id id/ }
 
 sub head_title {
 	my $self = shift;
@@ -16,6 +16,10 @@ sub head_title {
 }
 sub _short {
 	my $self = shift;
+	my ($display) = @_;
+	if ($display) {
+		return $self->{name}->rom() ? $self->{name}->format_short() : $self->{num};
+	}
 	return $self->{'num'};
 }
 sub _long {

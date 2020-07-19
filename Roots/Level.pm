@@ -212,7 +212,7 @@ sub display_short {
 	my $url = $self->myurl;
 	
 	print qq|<a href="$url">|;
-	print $self->_short();
+	print $self->_short(@_);
 	print "</a>";
 }
 
@@ -251,6 +251,9 @@ sub _full {
 	my $self = shift;
 	my @fields = $self->_addable_flds;
 	shift @fields;	# throw away the first value, which we deal with shortly
+	if ($fields[0] eq 'name' && !$self->{name}->rom()) {
+		shift @fields; # for Area, get rid of empty name
+	}
 	
 	my $n = scalar @fields || 1; # rowpsan shouldn't be 0
 	my $m = 1; # horizontal direction, we need this for admin stuff below
