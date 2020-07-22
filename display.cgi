@@ -107,9 +107,6 @@ Roots::Template::print_head($title_suffix, $auth_name);
 # display stuff
 
 if ($btn eq "Display") {
-	if (!defined($Q::level)) { # no parameters passed, display top level
-		print h1("Roots Database"), "\n";
-	}
 	display_hierarchy();
 	display_children($Q::level, $Q::id);
 

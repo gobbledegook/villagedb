@@ -80,7 +80,7 @@ JSCRIPT
 <body>
 <table border="0" width="100%">
 <tr><td width="92"><!-- sidebar -->
-<div class="logo">Roots<br>VillageDB</div>
+<div class="logo"><a href="https://www.friendsofroots.org/">Friends of Roots</a><hr>Village&nbsp;DB</div>
 <hr width="80" align="left" size="5">
 <a href="${base}display.cgi">Browse</a><p>
 <a href="${base}search.cgi">Search</a><p>
