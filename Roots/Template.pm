@@ -40,6 +40,9 @@ sub print_head {
 	<title>Village DB$title</title>
 	<meta http-equiv=content-type content="text/html; charset=utf-8">
 	<LINK REL="stylesheet" TYPE="text/css" HREF="${base}style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css"
+	integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+	crossorigin=""/>
 EOF
 	unless ($no_options) {
 		print <<JSCRIPT;

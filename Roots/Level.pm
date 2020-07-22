@@ -266,11 +266,7 @@ sub _full {
 		$result .= "<th>$_fld_label{$_}</th><td>"
 			. ($_big{$_}
 				? $self->{$_}->format_long()
-				: $self->{$_});
-		if ($_ eq 'map_loc' && $self->{'latlon'}) {
-			my $link = $self->latlon2url($self->{latlon});
-			$result .= '<br>[<a href="' . $link . '" target="_blank">approx. location on google maps</a>]';
-		}
+				: $self->format_long($_, $self->{$_}));
 		$result .= "</td></tr><tr>" if @fields; # if there's anything left, prepare a new row
 	}
 	if ($self->{flagnote} && !$self->{flag}) {
@@ -285,6 +281,12 @@ sub _full {
 		$result .= ' modified: ' . $self->{mod_time} if $self->{mod_time};
 	}
 	return $result;
+}
+
+sub format_long {
+	my $self = shift;
+	my (undef, $value) = @_;
+	return $value;
 }
 
 # Editing Methods

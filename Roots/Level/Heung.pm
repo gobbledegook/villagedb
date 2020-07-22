@@ -2,7 +2,6 @@ package Roots::Level::Heung;
 use v5.12;
 use CGI 'param';
 use Roots::Util;
-use Geo::Coordinates::UTM;
 our (@ISA);
 @ISA = qw(Roots::Level);
 
@@ -13,16 +12,22 @@ sub _fields	{ return qw/name up_id id markets map_loc latlon/ }
 sub display_short {
 	my $self = shift;
 	$self->SUPER::display_short(@_);
-	my $n = $dbh->selectrow_array('SELECT COUNT(*) FROM Village WHERE Heung_ID=?', undef, $self->{id});
-	print " (" . $n . " village" . ($n == 1 ? '' : 's') . ")" if $n;
-	if ($self->{latlon}) {
-		print ' [<a href="' . $self->latlon2url($self->{latlon}) . '" target="_blank">map</a>]';
+	my ($display) = @_;
+	if ($display == 1) {
+		my $n = $dbh->selectrow_array('SELECT COUNT(*) FROM Village WHERE Heung_ID=?', undef, $self->{id});
+		print " (" . $n . " village" . ($n == 1 ? '' : 's') . ")" if $n;
 	}
 }
 
-sub latlon2url {
+sub format_long {
 	my $self = shift;
-	return 'https://www.google.com/maps/@?api=1&map_action=map&center=' . $_[0] . '&zoom=14';
+	my ($key, $val) = @_;
+	my $result = $val;
+	if ($key eq 'map_loc' && $self->{'latlon'}) {
+		$result .= '<br>[<a href="https://www.google.com/maps/@?api=1&map_action=map&center=' . $self->{latlon} . '&zoom=14" target="_blank">approx. location on google maps</a>]';
+		$result .= '<br>[<a href="https://www.openstreetmap.org/#map=14/' . join('/',split /,/, $self->{latlon}) . '" target="_blank">approx. location on openstreetmap</a>]';
+	}
+	return $result;
 }
 
 sub _values {
@@ -36,6 +41,7 @@ sub _values {
 }
 
 sub mgrs2latlon {
+	require Geo::Coordinates::UTM;
 	my ($maploc, $area_id) = @_;
 	my ($county_id, $county, $area) = $dbh->selectrow_array('SELECT County.ID, County.Name, Area.Num FROM Area JOIN County ON Area.Up_ID=County.ID WHERE Area.ID=?', undef, $area_id);
 	my ($letter1, $easting, $northing) = $maploc =~ /(\w)\w ?(\d\d)(\d\d)/;
@@ -74,7 +80,7 @@ sub mgrs2latlon {
 		$northing = sprintf("%02i", $northing);
 
 		my $mgrs = "49Q$letter1$letter2$easting$northing";
-		my ($lat, $lon) = mgrs_to_latlon(6, $mgrs); # 6 is Clarke 1880
+		my ($lat, $lon) = Geo::Coordinates::UTM::mgrs_to_latlon(6, $mgrs); # 6 is Clarke 1880
 		my $latlon = sprintf("%.5f,%.5f", $lat, $lon);
 		return $latlon, $county_id, $county, $area, $mgrs;
 	} else {
