@@ -73,6 +73,7 @@ sub concat_with_classtags {
 		$rom = '';
 	}
 	$py = format_pinyin($py);
+	$jp = format_jyutping($jp);
 	my $result;
 	my @labels = qw/b5 rom py jp/;
 	foreach ($b5, $rom, $py, $jp) {
@@ -419,6 +420,12 @@ sub format_pinyin {
 	$string =~ s/(^| )’/$1/g; # strip initial apostrophe
 	$string =~ s/(^| )(\w)/$1\u$2/g; # capitalize
 	return $string;
+}
+
+sub format_jyutping {
+	my ($s) = @_;
+	$s =~ s/([123456])/<sup>$1<\/sup>/g;
+	return $s;
 }
 }
 

@@ -3,8 +3,9 @@
 package Roots::Template;
 use v5.12;
 use CGI qw(cookie url);
+use utf8;
 
-my @keys = qw(b5 rom py jp stc);
+my @keys = qw(b5 rom py jp);
 my @sortkeys = qw(book rom py);
 my %sortmenu;
 @sortmenu{@sortkeys} = ("original (source)", "romanization", "pinyin");
@@ -40,9 +41,6 @@ sub print_head {
 	<title>Village DB$title</title>
 	<meta http-equiv=content-type content="text/html; charset=utf-8">
 	<LINK REL="stylesheet" TYPE="text/css" HREF="${base}style.css">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css"
-	integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-	crossorigin=""/>
 EOF
 	unless ($no_options) {
 		print <<JSCRIPT;
@@ -67,6 +65,7 @@ EOF
 	//-->
 	</script>
 	<style type="text/css">
+sup { line-height: 100%; font-size: 67%; }
 JSCRIPT
 		foreach (@keys) {
 			print ".$_ {display:" . ($dispcss{$_} ? 'inline' : 'none') . "} ";	
@@ -74,6 +73,9 @@ JSCRIPT
 		print "</style>\n";
 	}
 	print <<EOF;
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css"
+	integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+	crossorigin=""/>
 </head>
 <body>
 <table border="0" width="100%">
@@ -117,8 +119,8 @@ EOF
 <form action="${base}options.cgi" method="post" id="view" style="display:none">
 EOF
 		my %labels;
-			@labels{@keys} = qw(big5 romanization pinyin jyutping STC);
-		my $count = 4;
+			@labels{@keys} = qw(big5 romanization pīnyīn jyut<sup>6</sup>ping<sup>3</sup>);
+		my $count = 3;
 		foreach (qw(rom py jp)) {
 			print qq#<label><input type="checkbox" onclick="setDisp(this)" value="$count" name="disp" id="$_"#;
 			print ' checked' if $dispcss{$_};
