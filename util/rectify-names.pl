@@ -53,7 +53,7 @@ foreach my $table (qw(Heung Subheung Subheung2 Village)) {
 							$db_py = 'shan4';
 						}
 					} else {
-						if ($u8[$i] eq '區' && $u8[$i+1] =~ /^[道邊]$/) {
+						if ($u8[$i] eq '區' && $u8[$i+1] =~ /^[道邊村]$/) {
 							# this should be keoi1 unless followed by these two chars
 							$db_jp = 'au1';
 							$db_py = 'ou1';
@@ -63,6 +63,9 @@ foreach my $table (qw(Heung Subheung Subheung2 Village)) {
 						} elsif ($u8[$i] eq '行' && $i > 0 && $u8[$i-1] eq '中') {
 							$db_jp = 'hong4';
 							$db_py = 'hang2';
+						} elsif ($u8[$i] eq '乾' && $u8[$i+1] eq '田') {
+							$db_jp = 'gon1';
+							$db_py = 'gan1';
 						}
 					}
 					if ($db_jp ne $jp[$i]) {
@@ -78,21 +81,23 @@ foreach my $table (qw(Heung Subheung Subheung2 Village)) {
 			my $jpnew = join ', ', @jpitems;
 			my $pynew = join ', ', @pyitems;
 			if ($jpnew ne $jp || $pynew ne $py) {
-				say "$id:$u8 ($rom): replace ";
+				say "$id:$u8 ($rom): replace ";# if (lc($jpnew =~ s/ //gr) ne lc($jp)) && (lc($pynew =~ s/ //gr) ne lc $py);
 				if ($jpnew ne $jp) {
+					#if (lc($jpnew =~ s/ //gr) ne lc($jp)) {
 					say "\t$jp with";
-					say "\t$jpnew" ;
+					say "\t$jpnew" ;#}
 					$dbh->do("UPDATE $table SET ${fld}_JP = ? WHERE ID=?", undef, $jpnew, $id) // die($dbh->errstr) unless $DEBUG;
 				}
 				if ($pynew ne $py) {
 					$dbh->do("UPDATE $table SET ${fld}_PY = ? WHERE ID=?", undef, $pynew, $id) // die($dbh->errstr) unless $DEBUG;
+					#if (lc($pynew =~ s/ //gr) ne lc $py) {
 					say "and" if $jpnew ne $jp;
 					$py = BigName::format_pinyin($py);
 					$pynew = BigName::format_pinyin($pynew);
 					say "\t$py with";
-					say "\t$pynew" ;
+					say "\t$pynew" ;#}
 				}
-				print "\n";
+				print "\n";# if (lc($jpnew =~ s/ //gr) ne lc($jp)) && (lc($pynew =~ s/ //gr) ne lc $py);
 			}
 			$total++;
 		}

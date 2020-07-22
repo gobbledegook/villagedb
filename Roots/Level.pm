@@ -251,8 +251,12 @@ sub _full {
 	my $self = shift;
 	my @fields = $self->_addable_flds;
 	shift @fields;	# throw away the first value, which we deal with shortly
-	if ($fields[0] eq 'name' && !$self->{name}->rom()) {
-		shift @fields; # for Area, get rid of empty name
+	if ($fields[0] eq 'name' && (!$self->{num} || !$self->{name}->rom())) {
+		shift @fields; # for Area, get rid of empty name or avoid showing name twice
+	} elsif ($fields[0] eq 'markets') {
+		if (!$self->{latlon}) {
+			@fields = (); # disable extra fields for Yanping Admin. Districts
+		}
 	}
 	
 	my $n = scalar @fields || 1; # rowpsan shouldn't be 0

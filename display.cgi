@@ -97,7 +97,7 @@ unless (load_info($Q::level, $Q::id)) {
 # %info now loaded
 # it includes one Level object for each level of the hierarchy we're viewing
 my $title_suffix;
-$title_suffix = "$Q::level: " . $info{$Q::level}->head_title()
+$title_suffix = level_to_label($Q::level) . ": " . $info{$Q::level}->head_title()
 	if $btn eq "Display" && $Q::level;
 
 # headers
@@ -265,7 +265,8 @@ sub display_info {
 	my ($info, $level) = @_;
 	my $level_current = $level eq $current_level;
 
-	print qq|<tr><th class="hier">$level</th>\n|;
+	my $label = level_to_label($level);
+	print qq|<tr><th class="hier">$label</th>\n|;
 	
 	if ($level_current and not $adding ) { #$btn eq "Display" || $editing
 		print '<td class="current">';
@@ -287,6 +288,19 @@ sub display_info {
 	}
 	
 	print "</td></tr>\n";
+}
+
+sub level_to_label {
+	my ($level) = @_;
+	my $label = $level;
+	if ($info{County}{id} == 5) {
+		if ($label eq 'Area') {
+			$label = 'Township';
+		} elsif ($label eq 'Heung') {
+			$label = 'Administrative District';
+		}
+	}
+	return $label;
 }
 
 ## note: displaying counties is just a special case of display_children
@@ -470,7 +484,8 @@ sub print_list {
 	if ($level eq 'Subvillage') {
 		$table = 'Village';
 	}
-	print "<p>Contains $num " . ($num == 1 ? $level : plural($level)) . ":</p>\n";
+	my $label = level_to_label($level);
+	print "<p>Contains $num " . ($num == 1 ? $label : plural($label)) . ":</p>\n";
 	if ($auth_name) {
 		print Roots::Template::button("Add $level", $Q::level, $id, $self, {addlevel=>$table});
 	}

@@ -12,19 +12,33 @@ sub _fields	{ return qw/num name up_id id/ }
 
 sub head_title {
 	my $self = shift;
-	return $self->{'num'};
+	if ($self->{num}) {
+		return $self->{'num'};
+	} else {
+		return $self->SUPER::head_title();
+	}
 }
+
 sub _short {
 	my $self = shift;
 	my ($display) = @_;
-	if ($display) {
-		return $self->{name}->rom() ? $self->{name}->format_short() : $self->{num};
+	if ($self->{num}) {
+		if ($display) {
+			return $self->{name}->rom() ? $self->{name}->format_short() : $self->{num};
+		}
+		return $self->{'num'};
+	} else {
+		return $self->SUPER::_short(@_);
 	}
-	return $self->{'num'};
 }
+
 sub _long {
 	my $self = shift;
-	return $self->{'num'};
+	if ($self->{num}) {
+		return $self->{'num'};
+	} else {
+		return $self->SUPER::_short(@_);
+	}
 }
 
 sub duplicate_check {

@@ -68,20 +68,23 @@ sub do_search_by_surname {
 	print "<hr>";
 	
 	# experimental map
-	my $sth = $dbh->prepare("select Heung.ID, latlon, count(Village.ID), Heung.Name from Heung join Village on Village.Heung_ID=Heung.ID join surnames_index on surnames_index.village_id=Village.ID where b5=? group by Heung.ID") // bail();
+	my $sth = $dbh->prepare("select Heung.ID, latlon, count(Village.ID), Heung.Name from Heung join Village on Village.Heung_ID=Heung.ID join surnames_index on surnames_index.village_id=Village.ID where b5=? and Heung.latlon != '' group by Heung.ID") // bail();
 	$sth->execute($surname) // bail();
-	print '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>';
-	print '<div id="mapid" style="height:760px"></div>';
-	print "<p>Heungs containing villages with surname $surname (larger circles means more villages with this surname).</p>\n";
-	print "<script>\n";
-	print q#var mymap = L.map('mapid', { center: [22.35551,112.9964], zoom: 10, scrollWheelZoom: false, maxBounds: [[20.41157,110.30273],[24.27200,115.69153]], maxBoundsViscosity: 1.0 });#;
-	print q#L.tileLayer('https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey={apikey}', { maxZoom: 12, minZoom: 8, apikey: '3ef0de1ebec54804a7ae7dd15780918e', attribution: 'Maps &copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(mymap);#;
-	print 'var circles = {}; var heungs = [';
+	my $heunginfo = '';
 	while (my ($id, $latlon, $n, $name) = $sth->fetchrow_array()) {
-		print "[$id,[$latlon],$n,'$name'],";
+		$heunginfo .= "[$id,[$latlon],$n,'$name'],";
 	}
-	print "];\n";
-	print <<'JS';
+	if ($heunginfo) {
+		print '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>';
+		print '<div id="mapid" style="height:760px"></div>';
+		print "<p>Heungs containing villages with surname $surname (larger circles means more villages with this surname).</p>\n";
+		print "<script>\n";
+		print q#var mymap = L.map('mapid', { center: [22.35551,112.9964], zoom: 10, scrollWheelZoom: false, maxBounds: [[20.41157,110.30273],[24.27200,115.69153]], maxBoundsViscosity: 1.0 });#;
+		print q#L.tileLayer('https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey={apikey}', { maxZoom: 12, minZoom: 8, apikey: '3ef0de1ebec54804a7ae7dd15780918e', attribution: 'Maps &copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(mymap);#;
+		print 'var circles = {}; var heungs = [';
+		print $heunginfo;
+		print "];\n";
+		print <<'JS';
 heungs.forEach(function(r) {
 	var radius = Math.trunc(Math.log(r[2])*200)+500;
 	circles['h' + r[0]] = L.circle(r[1], { color: 'red', weight: 1, fillColor: '#f02', fillOpacity: 0.5, radius: radius})
@@ -98,12 +101,14 @@ function jumpheung(e, id) {
 	var t = setTimeout(function(){elem.style.backgroundColor = origcolor;},(900));
 }
 JS
-	print "</script>\n";
+		print "</script>\n";
+	}
 
 	# searching via the index is faster, but you have to keep the surnames_index table updated all the time!
 	print_results("surnames_index.b5='$surname'", 'Village');
 
-	print <<'JS';
+	if ($heunginfo) {
+		print <<'JS';
 <script>
 Array.from(document.getElementsByClassName('maplink')).forEach(function(elem) {
 	elem.addEventListener('click', function(e) {
@@ -115,6 +120,7 @@ Array.from(document.getElementsByClassName('maplink')).forEach(function(elem) {
 });
 </script>
 JS
+	}
 
 	# slow, non-indexed alternative
 	#print_results("Surnames LIKE '%$surname%'");
@@ -177,7 +183,7 @@ sub do_search_other {
 	}
 	
 	my %h2e = (a=>'begins with', az=>'contains');
-	print "<p>Searching for " . ($Q::searchheungs ? 'heungs and ' : '') . "villages whose name"
+	print "<p>Searching for " . ($Q::searchheungs ? 'heungs, admin. districts, and ' : '') . "villages whose name"
 		. ($Q::field eq 'py' ? ' in pinyin' : '') ." $h2e{$Q::how} “$display_text”.</p>";
 	
 	my $foundheungs;
@@ -236,7 +242,19 @@ sub print_results {
 		if (!$isvillage || $foundheungs) {
 			# break up contiguous tables with some text
 			my $label = lc($table);
-			$label = 'minor subheung' if $label eq 'subheung2';
+			if ($label eq 'heung') {
+				my $contains_heung = $results[0][0]{id} < 5;
+				my $contains_admin = $results[-1][0]{id} == 5;
+				if ($contains_heung) {
+					if ($contains_admin) {
+						$label .= '/admin. district';
+					}
+				} else {
+					$label = 'admin. district';
+				}
+			} elsif ($label eq 'subheung2') {
+				$label = 'minor subheung' ;
+			}
 			print "<p>Found $total $label" . ($total == 1 ? '' : 's') . ".</p>";
 		}
 		print q|<table class="search" cellspacing=0>|;
@@ -251,12 +269,23 @@ sub print_results {
 		}
 		$thead .= '<th>Edit</th>' if $Roots::Util::admin;
 		$thead .= "</thead>\n";
-		print $thead;
 
 		my $n = 1;
+		my $old_county_id;
 		my $oldref;
 		my @saved_ids;
 		foreach (@results) { # for each array ref...
+			my $county_id = $_->[0]{id};
+			if ($county_id != $old_county_id) {
+				if (!defined($old_county_id) && $county_id < 5) {
+					print $thead;
+				} elsif ($county_id == 5) {
+					$thead =~ s/Area/Township/;
+					$thead =~ s/Heung/Admin. Dist./;
+					print $thead;
+				}
+				$old_county_id = $county_id;
+			}
 			my $hilite = ($n % 5 || $total < 10) ? '' : ' class="hilite"';
 			print qq|<tr$hilite><td class="num">|, $n, "</td>";
 			foreach my $x (@$_) {
@@ -272,7 +301,7 @@ sub print_results {
 						print "<td>";
 					}
 					$x->display_short();
-					if ($surnames_heung) {
+					if ($surnames_heung && $x->{latlon}) {
 						print ' <a href="#" class="maplink">[map↑]</a>';
 					}
 				}
@@ -376,7 +405,7 @@ Search for villages whose name
 
 <select name="field">
 <option value="b5"$b5_selected>in Chinese</option>
-<option value="rom"$rom_selected>in Cantonese romanization</option>
+<option value="rom"$rom_selected>in romanization</option>
 <option value="py"$py_selected>in pinyin</option>
 </select>
 
@@ -388,7 +417,7 @@ Search for villages whose name
 <input type=text name="text" size=25 maxlength=50>
 <input type="hidden" name="btn" value="SearchOther">
 <br>
-<label><input type="checkbox" name="searchheungs"$heungs_checked>Also search heungs</label>
+<label><input type="checkbox" name="searchheungs"$heungs_checked>Also search heungs/admin. districts</label>
 <input type="submit" value="Search">
 </form>
 EOF
@@ -434,13 +463,16 @@ BEGIN { # stick this here so it's out of the way
 ['歐', 'Au', 'Ōu', 'ou1'],
 ['歐陽', 'Au Yeung', 'Ōuyáng', 'ou1 yang2'],
 ['鮑', 'Bau, Pao', 'Bào', 'bao4'],
+['邦', 'Bong', 'Bāng', 'bang1'],
 ['陳', 'Chan, Chin', 'Chén', 'chen2'],
 ['巢', 'Chao', 'Cháo', 'chao2'],
 ['周', 'Chau, Chow', 'Zhōu', 'zhou1'],
 ['鄒', 'Chau, Chow', 'Zōu', 'zou1'],
+['瘳', 'Chau', 'Chōu', 'chou1'],
 ['鄭', 'Cheng', 'Zhèng', 'zheng4'],
 ['卓', 'Cheuk', 'Zhuó', 'zhuo2'],
 ['張', 'Cheung', 'Zhāng', 'zhang1'],
+['池', 'Chi', 'Chí', 'chi2'],
 ['蔣', 'Chiang', 'Jiǎng', 'jiang3'],
 ['錢', 'Chien, Chin', 'Qián', 'qian2'],
 ['戚', 'Chik', 'Qī', 'qi1'],
@@ -448,41 +480,58 @@ BEGIN { # stick this here so it's out of the way
 ['秦', 'Chin', 'Qín', 'qin2'],
 ['程', 'Ching', 'Chéng', 'cheng2'],
 ['趙', 'Chiu, Chu, Jew', 'Zhào', 'zhao4'],
+['肖', 'Chiu', 'Xiào', 'xiao4'],
 ['曹', 'Cho, Tso', 'Cáo', 'cao2'],
 ['蔡', 'Choi, Toy, Tsoi', 'Cài', 'cai4'],
 ['朱', 'Chu, Gee', 'Zhū', 'zhu1'],
 ['崔', 'Chui', 'Cuī', 'cui1'],
+['祝', 'Chuk', 'Zhù', 'zhu4'],
 ['鍾', 'Chung', 'Zhōng', 'zhong1'],
 ['戴', 'Dai, Tai', 'Dài', 'dai4'],
 ['謝', 'Der, Tse', 'Xiè', 'xie4'],
+['翟', 'Dik', 'Dí', 'di2'],
+['奠', 'Din', 'Diàn', 'dian4'],
+['刁', 'Diu', 'Diāo', 'diao1'],
 ['范', 'Fan', 'Fàn', 'fan4'],
 ['樊', 'Fan', 'Fán', 'fan2'],
 ['霍', 'Fok', 'Huò', 'huo4'],
 ['方', 'Fong', 'Fāng', 'fang1'],
 ['鄺', 'Fong, Kwong', 'Kuàng', 'kuang4'],
 ['傅', 'Fu', 'Fù', 'fu4'],
+['苻', 'Fu', 'Fú', 'fu2'],
 ['馮', 'Fung', 'Féng', 'feng2'],
+['郟', 'Gap', 'Jiá', 'jia2'],
 ['甄', 'Gin, Yan', 'Zhēn', 'zhen1'],
 ['夏', 'Ha', 'Xià', 'xia4'],
 ['侯', 'Hau', 'Hóu', 'hou2'],
 ['何', 'Ho', 'Hé', 'he2'],
 ['賀', 'Ho', 'Hè', 'he4'],
 ['譚', 'Hom, Tam', 'Tán', 'tan2'],
+['韓', 'Hon', 'Hán', 'han2'],
 ['康', 'Hong', 'Kāng', 'kang1'],
+['項', 'Hong', 'Xiàng', 'xiang4'],
+['候', 'Hou', 'Hòu', 'hou4'],
+['禤', 'Huen', 'Xuān', 'xuan1'],
 ['許', 'Hui', 'Xǔ', 'xu3'],
 ['熊', 'Hung', 'Xióng', 'xiong2'],
 ['洪', 'Hung', 'Hóng', 'hong2'],
+['孔', 'Hung', 'Kǒng', 'kong3'],
 ['詹', 'Jim', 'Zhān', 'zhan1'],
 ['甘', 'Kam', 'Gān', 'gan1'],
 ['金', 'Kam', 'Jīn', 'jin1'],
 ['簡', 'Kan', 'Jiǎn', 'jian3'],
+['姜', 'Keung', 'Jiāng', 'jiang1'],
+['揭', 'Kit', 'Jiē', 'jie1'],
 ['高', 'Ko', 'Gāo', 'gao1'],
 ['江', 'Kong', 'Jiāng', 'jiang1'],
+['葛', 'Kot', 'Gě', 'ge3'],
 ['古', 'Ku', 'Gǔ', 'gu3'],
 ['顧', 'Ku', 'Gù', 'gu4'],
+['股', 'Ku', 'Gǔ', 'gu3'],
 ['龔', 'Kung', 'Gōng', 'gong1'],
 ['關', 'Kwan', 'Guān', 'guan1'],
 ['郭', 'Kwok', 'Guō', 'guo1'],
+['官', 'Kwoon', 'Guān', 'guan1'],
 ['黎', 'Lai', 'Lí', 'li2'],
 ['賴', 'Lai', 'Lài', 'lai4'],
 ['林', 'Lam, Lum', 'Lín', 'lin2'],
@@ -507,23 +556,30 @@ BEGIN { # stick this here so it's out of the way
 ['馬', 'Ma, Mar', 'Mǎ', 'ma3'],
 ['麥', 'Mak', 'Mài', 'mai4'],
 ['文', 'Man, Mun', 'Wén', 'wen2'],
+['萬', 'Man', 'Wàn', 'wan4'],
 ['孟', 'Mang', 'Mèng', 'meng4'],
 ['繆', 'Mau', 'Móu', 'mou2'],
 ['巫', 'Mo', 'Wū', 'wu1'],
 ['毛', 'Mo', 'Máo', 'mao2'],
+['武', 'Mo', 'Wǔ', 'wu3'],
 ['莫', 'Mok', 'Mò', 'mo4'],
 ['梅', 'Moy', 'Méi', 'mei2'],
+['閔', 'Mun', 'Mǐn', 'min3'],
+['蒙', 'Mung', 'Méng', 'meng2'],
 ['伍', 'Ng', 'Wǔ', 'wu3'],
 ['吳', 'Ng', 'Wú', 'wu2'],
 ['倪', 'Ngai', 'Ní', 'ni2'],
 ['魏', 'Ngai', 'Wèi', 'wei4'],
 ['顏', 'Ngan', 'Yán', 'yan2'],
 ['敖', 'Ngo', 'Áo', 'ao2'],
+['岳', 'Ngok', 'Yuè', 'yue4'],
 ['寧', 'Ning', 'Níng', 'ning2'],
 ['聶', 'Nip', 'Niè', 'nie4'],
 ['柯', 'Or', 'Kē', 'ke1'],
 ['白', 'Pak', 'Bái', 'bai2'],
 ['彭', 'Pang', 'Péng', 'peng2'],
+['包', 'Pao', 'Bāo', 'bao1'],
+['龐', 'Pong', 'Páng', 'pang2'],
 ['潘', 'Poon, Pun', 'Pān', 'pan1'],
 ['盤', 'Poon', 'Pán', 'pan2'],
 ['辛', 'San, Sun', 'Xīn', 'xin1'],
@@ -531,9 +587,13 @@ BEGIN { # stick this here so it's out of the way
 ['施', 'She', 'Shī', 'shi1'],
 ['石', 'Shek', 'Shí', 'shi2'],
 ['佘', 'Sher', 'Shé', 'she2'],
+['是', 'Shi', 'Shì', 'shi4'],
 ['岑', 'Shum', 'Cén', 'cen2'],
+['淳', 'Shun', 'Chún', 'chun2'],
+['色', 'Sik', 'Sè', 'se4'],
 ['單', 'Sin', 'Shàn', 'shan4'],
 ['冼', 'Sin', 'Shěng', 'sheng3'],
+['成', 'Sing', 'Chéng', 'cheng2'],
 ['薛', 'Sit', 'Xuē', 'xue1'],
 ['蕭', 'Siu', 'Xiāo', 'xiao1'],
 ['蘇', 'So', 'Sū', 'su1'],
@@ -541,13 +601,20 @@ BEGIN { # stick this here so it's out of the way
 ['沈', 'Sum', 'Chén', 'chen2'],
 ['宋', 'Sung', 'Sòng', 'song4'],
 ['談', 'Tam', 'Tán', 'tan2'],
+['覃', 'Tam', 'Tán', 'tan2'],
 ['鄧', 'Tang', 'Dèng', 'deng4'],
+['滕', 'Tang', 'Téng', 'teng2'],
+['禢', 'Tap', 'Tā', 'ta1'],
+['田', 'Tin', 'Tián', 'tian2'],
 ['丁', 'Ting', 'Dīng', 'ding1'],
+['杜', 'To', 'Dù', 'du4'],
+['涂', 'To', 'Tú', 'tu2'],
 ['湯', 'Tong', 'Tāng', 'tang1'],
 ['唐', 'Tong', 'Táng', 'tang2'],
 ['曾', 'Tsang', 'Zēng', 'zeng1'],
 ['徐', 'Tsui', 'Xú', 'xu2'],
 ['衛', 'Wai, Wei', 'Wèi', 'wei4'],
+['韋', 'Wai', 'Wéi', 'wei2'],
 ['溫', 'Wan, Won', 'Wēn', 'wen1'],
 ['尹', 'Wan', 'Yǐn', 'yin3'],
 ['屈', 'Wat', 'Qū', 'qu1'],
@@ -566,6 +633,7 @@ BEGIN { # stick this here so it's out of the way
 ['姚', 'Yiu', 'Yáo', 'yao2'],
 ['饒', 'Yiu', 'Ráo', 'rao2'],
 ['茹', 'Yu', 'Rú', 'ru2'],
+['俞', 'Yu', 'Yú', 'yu2'],
 ['阮', 'Yuen', 'Ruǎn', 'ruan3'],
 ['袁', 'Yuen', 'Yuán', 'yuan2'],
 ['遠', 'Yuen', 'Yuǎn', 'yuan3'],
