@@ -7,7 +7,7 @@ binmode(STDOUT, ":utf8");
 
 Roots::Util::do_connect();
 
-my $sth = $dbh->prepare("SELECT Heung.ID, Heung.Name_ROM, Map_Location, latlon, Area.ID FROM Heung JOIN Area ON Heung.Up_ID=Area.ID");
+my $sth = $dbh->prepare("SELECT Heung.ID, Heung.Name_ROM, Map_Location, Heung.latlon, Area.ID FROM Heung JOIN Area ON Heung.Up_ID=Area.ID");
 $sth->execute();
 while (my ($id, $heung_rom, $maploc, $old_latlon, $area_id) = $sth->fetchrow_array()) {
 	next unless $maploc;

@@ -36,6 +36,7 @@ CREATE TABLE `Area` (
   `Name_PY` varchar(150) DEFAULT NULL,
   `Name_JP` varchar(150) DEFAULT NULL,
   `Name_STC` varchar(100) DEFAULT NULL,
+  `latlon` varchar(21) DEFAULT NULL,
   `Date_Created` datetime DEFAULT NULL,
   `Date_Modified` datetime DEFAULT NULL,
   `Created_By` varchar(20) DEFAULT NULL,

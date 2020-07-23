@@ -1,14 +1,16 @@
 package Roots::Level::Area;
 use v5.12;
+use utf8;
 our (@ISA);
 @ISA = qw(Roots::Level);
 
 use CGI 'param';
+use Roots::Template;
 
 sub table { 'Area' }
 sub parent { 'Roots::Level::County' }
 
-sub _fields	{ return qw/num name up_id id/ }
+sub _fields	{ return qw/num name up_id id latlon/ }
 
 sub head_title {
 	my $self = shift;
@@ -39,6 +41,29 @@ sub _long {
 	} else {
 		return $self->SUPER::_short(@_);
 	}
+}
+
+sub display_long {
+	my $self = shift;
+	$self->SUPER::display_long(@_);
+	if ($self->{latlon}) {
+		print '[→ location on ' . Roots::Template::gmap_link($self->{latlon}) . 'google maps</a> / '
+				. Roots::Template::osm_link($self->{latlon}) . 'openstreetmap</a>]';
+	}
+}
+
+sub format_long {
+	my $self = shift;
+	my ($k, $v) = @_;
+	if ($k eq 'latlon') {
+		if ($v) {
+			return '[' . Roots::Template::gmap_link($v) . 'location on google maps</a>]<br>['
+				. Roots::Template::osm_link($v) . 'location on openstreetmap</a>]';
+		} else {
+			return '-';
+		}
+	}
+	return $self->SUPER::format_long(@_);
 }
 
 sub duplicate_check {

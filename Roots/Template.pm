@@ -156,4 +156,14 @@ sub button {
 	return $s;
 }
 
+sub gmap_link {
+	my ($latlon) = @_;
+	return '<a href="https://www.google.com/maps/@?api=1&map_action=map&center=' . $latlon . '&zoom=14" target="_blank">';
+}
+
+sub osm_link {
+	my ($latlon) = @_;
+	return '<a href="https://www.openstreetmap.org/#map=14/' . join('/',split /,/, $latlon) . '" target="_blank">';
+}
+
 1;

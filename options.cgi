@@ -3,7 +3,7 @@ use v5.12;
 use lib '.';
 use Roots::Util;
 use Roots::Template;
-use CGI qw(-utf8 new);
+use CGI qw(-utf8);
 
 # get the session id
 my $q = CGI->new();
@@ -12,7 +12,7 @@ Roots::Util::get_existing_session();
 # get our displayed keys from the params; otherwise from the previous cookie
 my (@displayed, $cookie);
 if ($q->param("btn")) {
-	@displayed = $q->param('disp');
+	@displayed = $q->multi_param('disp');
 	$cookie = $q->cookie(-name=>"disp", -value=>\@displayed,
 						-expires=>'+1y');
 	print $q->redirect(-uri=>Roots::Util::session_url(),

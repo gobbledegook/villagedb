@@ -49,7 +49,7 @@ $Force_STC_Convert = 1;
 %_fld_label =
 		( 	name=>'Name',
 			num=>'Area Num',
-			markets=>'Market(s)', map_loc=>'Map Location', latlon=>'Lat/Lon',
+			markets=>'Market(s)', map_loc=>'Map Location', latlon=>'Location',
 			surname=>'Surname(s)' );
 
 # _ignore_override: This is for our _add method.
@@ -257,6 +257,7 @@ sub _full {
 		if (!$self->{latlon}) {
 			@fields = (); # disable extra fields for Yanping Admin. Districts
 		}
+		pop @fields if $fields[-1] eq 'latlon'; # latlon will get appended to map_loc for Heungs
 	}
 	
 	my $n = scalar @fields || 1; # rowpsan shouldn't be 0
@@ -266,7 +267,6 @@ sub _full {
 	
 	# now we output the remaining fields
 	while ($_ = shift @fields) {
-		next if $_ eq 'latlon';
 		$result .= "<th>$_fld_label{$_}</th><td>"
 			. ($_big{$_}
 				? $self->{$_}->format_long()
@@ -772,7 +772,7 @@ sub search {
 
 	my $sth = $dbh->prepare('SELECT ' . join(',', @flds)
 		. " FROM $join WHERE $condition $options"
-		. ' LIMIT 1000');
+		. ' LIMIT 1200');
 	my $t0 = [gettimeofday];
 	$sth->execute() or bail("Error reading from database.");
 	$ELAPSED += tv_interval($t0);

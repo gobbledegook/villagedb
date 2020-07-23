@@ -1,7 +1,9 @@
 package Roots::Level::Heung;
 use v5.12;
+use utf8;
 use CGI 'param';
 use Roots::Util;
+use Roots::Template;
 our (@ISA);
 @ISA = qw(Roots::Level);
 
@@ -19,13 +21,22 @@ sub display_short {
 	}
 }
 
+sub display_long {
+	my $self = shift;
+	$self->SUPER::display_long(@_);
+	if ($self->{latlon}) {
+		print '[→ approx. location on ' . Roots::Template::gmap_link($self->{latlon}) . 'google maps</a> / '
+				. Roots::Template::osm_link($self->{latlon}) . 'openstreetmap</a>]';
+	}
+}
+
 sub format_long {
 	my $self = shift;
 	my ($key, $val) = @_;
 	my $result = $val;
 	if ($key eq 'map_loc' && $self->{'latlon'}) {
-		$result .= '<br>[<a href="https://www.google.com/maps/@?api=1&map_action=map&center=' . $self->{latlon} . '&zoom=14" target="_blank">approx. location on google maps</a>]';
-		$result .= '<br>[<a href="https://www.openstreetmap.org/#map=14/' . join('/',split /,/, $self->{latlon}) . '" target="_blank">approx. location on openstreetmap</a>]';
+		$result .= '<br>[' . Roots::Template::gmap_link($self->{latlon}) . 'approx. location on google maps</a>]<br>['
+				. Roots::Template::osm_link($self->{latlon}) . 'approx. location on openstreetmap</a>]';
 	}
 	return $result;
 }

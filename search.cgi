@@ -72,55 +72,26 @@ sub do_search_by_surname {
 	$sth->execute($surname) // bail();
 	my $heunginfo = '';
 	while (my ($id, $latlon, $n, $name) = $sth->fetchrow_array()) {
-		$heunginfo .= "[$id,[$latlon],$n,'$name'],";
+		$heunginfo .= "[$id,[$latlon],$n,'$name','h'],";
+	}
+	my $sth = $dbh->prepare("select Area.ID, Area.latlon, count(Village.ID), Area.Name from Area join Heung on Heung.Up_ID=Area.ID join Village on Village.Heung_ID=Heung.ID join surnames_index on surnames_index.village_id=Village.ID where b5=? and Area.latlon is not null group by Area.ID") // bail();
+	$sth->execute($surname) // bail();
+	while (my ($id, $latlon, $n, $name) = $sth->fetchrow_array()) {
+		$heunginfo .= "[$id,[$latlon],$n,'$name','t'],";
 	}
 	if ($heunginfo) {
 		print '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>';
 		print '<div id="mapid" style="height:760px"></div>';
-		print "<p>Heungs containing villages with surname $surname (larger circles means more villages with this surname).</p>\n";
-		print "<script>\n";
-		print q#var mymap = L.map('mapid', { center: [22.35551,112.9964], zoom: 10, scrollWheelZoom: false, maxBounds: [[20.41157,110.30273],[24.27200,115.69153]], maxBoundsViscosity: 1.0 });#;
-		print q#L.tileLayer('https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey={apikey}', { maxZoom: 12, minZoom: 8, apikey: '3ef0de1ebec54804a7ae7dd15780918e', attribution: 'Maps &copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(mymap);#;
+		print "<p>Heungs/townships containing villages with surname $surname (larger circles means more villages with this surname).</p>\n";
+		print "<script>\n<!--\n";
 		print 'var circles = {}; var heungs = [';
 		print $heunginfo;
-		print "];\n";
-		print <<'JS';
-heungs.forEach(function(r) {
-	var radius = Math.trunc(Math.log(r[2])*200)+500;
-	circles['h' + r[0]] = L.circle(r[1], { color: 'red', weight: 1, fillColor: '#f02', fillOpacity: 0.5, radius: radius})
-	.addTo(mymap)
-	.bindPopup('<a href="#" onclick="jumpheung(event,' + r[0] + ')">' + r[3] + ' ↓</a>');
-});
-function jumpheung(e, id) {
-	e.preventDefault();
-	e.stopPropagation();
-	var elem = document.getElementById('h' + id);
-	elem.scrollIntoView();
-	var origcolor = elem.style.backgroundColor;
-	elem.style.backgroundColor = 'yellow';
-	var t = setTimeout(function(){elem.style.backgroundColor = origcolor;},(900));
-}
-JS
-		print "</script>\n";
+		print "];\n//-->\n</script>\n";
+		print qq|<script src="${Roots::Template::base}js/searchmap_load.js"></script>\n|;
 	}
 
 	# searching via the index is faster, but you have to keep the surnames_index table updated all the time!
 	print_results("surnames_index.b5='$surname'", 'Village');
-
-	if ($heunginfo) {
-		print <<'JS';
-<script>
-Array.from(document.getElementsByClassName('maplink')).forEach(function(elem) {
-	elem.addEventListener('click', function(e) {
-		e.preventDefault();
-		e.stopPropagation();
-		document.getElementById('mapid').scrollIntoView();
-		circles[elem.parentElement.id].openPopup();
-	}, false);
-});
-</script>
-JS
-	}
 
 	# slow, non-indexed alternative
 	#print_results("Surnames LIKE '%$surname%'");
@@ -280,6 +251,9 @@ sub print_results {
 				if (!defined($old_county_id) && $county_id < 5) {
 					print $thead;
 				} elsif ($county_id == 5) {
+					if (defined($old_county_id)) {
+						print qq|</table>\n&nbsp;<table class="search" cellspacing=0>|;
+					}
 					$thead =~ s/Area/Township/;
 					$thead =~ s/Heung/Admin. Dist./;
 					print $thead;
@@ -294,14 +268,15 @@ sub print_results {
 					print "<td>";
 					print '"';
 				} else {
-					my $surnames_heung = $surname && $x->table() eq 'Heung';
-					if ($surnames_heung) {
-						print qq|<td id="h$x->{id}">|;
+					my $id;
+					if ($surname && $x->{latlon}) {
+						$id = ($county_id == 5 ? 't' : 'h') . $x->{id};
+						print qq|<td id="$id">|;
 					} else {
 						print "<td>";
 					}
 					$x->display_short();
-					if ($surnames_heung && $x->{latlon}) {
+					if ($id) {
 						print ' <a href="#" class="maplink">[map↑]</a>';
 					}
 				}
