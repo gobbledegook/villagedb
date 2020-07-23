@@ -16,6 +16,7 @@ unless (@disp) {
 my %dispcss;
 @dispcss{@disp} = (1) x scalar @disp;
 
+our ($base);
 sub print_head {
 	my ($title, $auth_name, $no_options) = @_;
 	$title = ": $title" if $title;
@@ -23,7 +24,7 @@ sub print_head {
 	my $selected = cookie('sort') || 'rom';
 	my $absolute_url = url( -absolute => 1 );
 	my $relative_url = url( -relative => 1 );
-	my $base = substr($absolute_url, 0, -length($relative_url));
+	$base = substr($absolute_url, 0, -length($relative_url));
 	print <<EOF;
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
