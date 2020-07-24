@@ -11,29 +11,41 @@ L.tileLayer('https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey={api
 	apikey: '3ef0de1ebec54804a7ae7dd15780918e',
 	attribution: 'Maps &copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, Data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }).addTo(mymap);
+var min_lon = 112.9;
+var max_lon = 113.0; // coordinates at approximate center of our map area
 heungs.forEach(function(r) {
 	var radius = Math.trunc(Math.log(r[2])*200)+500;
 	var id = r[4] + r[0];
+	var lon = r[1][1];
+	if (lon < min_lon) { min_lon = lon; }
+	else if (lon > max_lon) { max_lon = lon; }
 	circles[id] = L.circle(r[1], { color: 'red', weight: 1, fillColor: '#f02', fillOpacity: 0.5, radius: radius })
 		.addTo(mymap)
-		.bindPopup('<a href="#" onclick="jumpheung(event,\'' + id + '\')">' + r[3] + ' ↓</a>');
+		.bindPopup('<a href="#" onclick="jumpheung(event,\'' + id + '\')">' + r[3] + ' ↓</a><br>' + r[2] + ' village' + (r[2]==1 ? '' : 's'));
 });
 function jumpheung(e, id) {
 	e.preventDefault();
 	e.stopPropagation();
 	var elem = document.getElementById(id);
-	elem.scrollIntoView();
+	if (!isVisible(elem)) elem.scrollIntoView({block:'center'});
 	var origcolor = elem.style.backgroundColor;
 	elem.style.backgroundColor = 'yellow';
 	var t = setTimeout(function(){elem.style.backgroundColor = origcolor;},(900));
 }
+function isVisible (x) {
+	var r = x.getBoundingClientRect();
+	return (r.top > 0 && r.left > 0 && r.bottom < (window.innerHeight || document.documentElement.clientHeight) &&
+		r.right < (window.innerWidth || document.documentElement.clientWidth));
+};
 document.addEventListener("DOMContentLoaded", function() {
 	Array.from(document.getElementsByClassName('maplink')).forEach(function(elem) {
 		elem.addEventListener('click', function(e) {
 			e.preventDefault();
 			e.stopPropagation();
-			document.getElementById('mapid').scrollIntoView();
+			var map = document.getElementById('mapid');
+			if (!isVisible(map)) map.scrollIntoView();
 			circles[elem.parentElement.id].openPopup();
 		}, false);
 	});
+	mymap.panInsideBounds([[22.3,min_lon],[22.4,max_lon]], {animate:false});
 });

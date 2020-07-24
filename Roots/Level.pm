@@ -242,7 +242,7 @@ sub _long {
 sub display_full {	# the idea for these is that everything fits into a <td></td>
 	my $self = shift;
 	
-	print qq|<table border=2 cellpadding=4>\n<tr>|;
+	print qq|<table border="0" cellpadding="5">\n<tr>|;
 	print $self->_full();
 	print qq|</td></tr></table>|;
 }
@@ -251,8 +251,17 @@ sub _full {
 	my $self = shift;
 	my @fields = $self->_addable_flds;
 	shift @fields;	# throw away the first value, which we deal with shortly
-	if ($fields[0] eq 'name' && (!$self->{num} || !$self->{name}->rom())) {
-		shift @fields; # for Area, get rid of empty name or avoid showing name twice
+	if ($fields[0] eq 'name') {
+		my @values;
+		for (@fields) {
+			if ($_ eq 'name') {
+				push @values, $_ if $self->{num} && $self->{name}->rom();
+				# show name in second position only if it's a numbered area with non-empty name
+			} elsif ($_ eq 'latlon') {
+				push @values, $_ if $self->{latlon};
+			}
+		}
+		@fields = @values;
 	} elsif ($fields[0] eq 'markets') {
 		if (!$self->{latlon}) {
 			@fields = (); # disable extra fields for Yanping Admin. Districts
