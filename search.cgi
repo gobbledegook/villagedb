@@ -181,17 +181,14 @@ sub do_search_superuser {
 # 		$sth->execute() or bail("Error reading from database.");
 # 		my @saved_ids;
 # 		my $n = 1;
-# 		print q|<table class="search" cellspacing=0>|;
+# 		print q|<table class="search">|;
 # 		while (my @ary = $sth->fetchrow_array()) {
 # 			print "<tr><td>$n</td><td>";
 # 			$x->load(@ary);
 # 			$x->display_short();
 # 			print "</td><td>";
-# 			print qq|<form method="post" action="display.cgi">($x->{flag})
-# <input type="hidden" name="level" value="$Q::table">
-# <input type="hidden" name="id" value="$x->{id}">
-# <input type="hidden" name="searchitem" value="$n">
-# <input type="submit" name="btn" value="Edit"></form>|;
+# 			print Roots::Template::button('Edit', $Q::table, $x->{id}, 'display.cgi', {searchitem=>$n});
+# 			print "[$x->[-1]{flag}] $x->[-1]{flagnote}" if $x->[-1]{flag};
 # 			print "</td></tr>";
 # 			push @saved_ids, $x->{id};
 # 			++$n;
@@ -228,7 +225,40 @@ sub print_results {
 			}
 			print "<p>Found $total $label" . ($total == 1 ? '' : 's') . ".</p>";
 		}
-		print q|<table class="search" cellspacing=0>|;
+		# first pass: figure out the rowspans for repeated elements
+		my $oldrow;
+		my @rowspans;
+		my $maxcol = @{$results[0]} - 2; # last column doesn't need to be processed
+		my @saved_ids;
+		my $n = 0;
+		for my $row (@results) {
+			for my $i (0..$maxcol) {
+				my $x = $row->[$i];
+				my $oldid = $oldrow && $oldrow->[$i]{id};
+				if ($x->{id} == $oldid) { # compare corresponding items of each row
+					$rowspans[$i]++;
+				} else {
+					if ($rowspans[$i] > 1) {
+						$results[$n-$rowspans[$i]][$i]{__rowspan} = $rowspans[$i];
+					}
+					$rowspans[$i] = 1;
+				}
+			}
+			push @saved_ids, $row->[-1]{id} if $Roots::Util::admin;
+			$oldrow = $row;
+			$n++;
+		}
+		for my $i (0..$maxcol) {
+			if ($rowspans[$i] > 1) {
+				$results[$n-$rowspans[$i]][$i]{__rowspan} = $rowspans[$i];
+			}
+		}
+		if ($Roots::Util::admin) {
+			$session->{searchresults} = \@saved_ids;
+		}
+		
+		# second pass: generate html table
+		print q|<table class="search">|;
 		my $thead = "<thead><th>#</th><th>County</th><th>Area</th><th>Heung</th>";
 		if ($table eq 'Village') {
 			$thead .= "<th>Village</th>";
@@ -239,12 +269,11 @@ sub print_results {
 			}
 		}
 		$thead .= '<th>Edit</th>' if $Roots::Util::admin;
-		$thead .= "</thead>\n";
+		$thead .= "</thead><tbody>\n";
 
-		my $n = 1;
+		$n = 1;
 		my $old_county_id;
-		my $oldref;
-		my @saved_ids;
+		$oldrow = undef;
 		foreach (@results) { # for each array ref...
 			my $county_id = $_->[0]{id};
 			if ($county_id != $old_county_id) {
@@ -252,33 +281,38 @@ sub print_results {
 					print $thead;
 				} elsif ($county_id == 5) {
 					if (defined($old_county_id)) {
-						print qq|</table>\n&nbsp;<table class="search" cellspacing=0>|;
+						print qq|</tbody></table>\n&nbsp;<table class="search">|;
 					}
 					$thead =~ s/Area/Township/;
 					$thead =~ s/Heung/Admin. Dist./;
 					print $thead;
+					$n = 1;
 				}
 				$old_county_id = $county_id;
 			}
-			my $hilite = ($n % 5 || $total < 10) ? '' : ' class="hilite"';
-			print qq|<tr$hilite><td class="num">|, $n, "</td>";
+			print qq|<tr><td class="num">$n</td>|;
 			foreach my $x (@$_) {
-				my $oldid = $oldref && (shift @$oldref)->{id};
-				if ($x->{id} == $oldid) { # compares corresponding items of each row
-					print "<td>";
-					print '"';
-				} else {
-					my $id;
-					if ($surname && $x->{latlon}) {
-						$id = ($county_id == 5 ? 't' : 'h') . $x->{id};
-						print qq|<td id="$id">|;
-					} else {
-						print "<td>";
-					}
-					$x->display_short();
-					if ($id) {
-						print ' <a href="#" class="maplink">[map↑]</a>';
-					}
+				my $oldid = $oldrow && (shift @$oldrow)->{id};
+				next if $x->{id} == $oldid;
+
+				my $id;
+				if ($surname && $x->{latlon}) {
+					$id = ($county_id == 5 ? 't' : 'h') . $x->{id};
+				}
+				print "<td";
+				my $rowspan = $x->{__rowspan};
+				if ($rowspan) {
+					print qq| rowspan="$rowspan">|;
+					print '<div><div class="multi"';
+				}
+				print qq# id="$id"# if $id;
+				print '>';
+				$x->display_short();
+				if ($id) {
+					print ' <a href="#" class="maplink">[map↑]</a>';
+				}
+				if ($rowspan) {
+					print '</div></div>';
 				}
 				print "</td>";
 			}
@@ -289,16 +323,14 @@ sub print_results {
 			}
 			print "</tr>\n";
 			++$n;
-			$oldref = $_; # save this row
-			push @saved_ids, $_->[-1]{id};
+			$oldrow = $_;
 		}
+		print '</tbody>';
 		print "</table>";
-		if ($Roots::Util::admin) {
-			$session->{searchresults} = \@saved_ids;
-		}
 	} else {
 		print "<p>No results found.</p>" if $isvillage;
 	}
+	print qq|<script src="${Roots::Template::base}js/searchtable.js"></script>\n|;
 	return $total;
 }
 
