@@ -318,7 +318,7 @@ sub print_results {
 			}
 			if ($Roots::Util::admin) {
 				print '<td>', Roots::Template::button('Edit', $table, $_->[-1]{id}, 'display.cgi', {searchitem=>$n});
-				print "[$_->[-1]{flag}] $_->[-1]{flagnote}" if $_->[-1]{flag};
+				print "[$_->[-1]{flag}] $_->[-1]{flagnote}" if $_->[-1]{flagnote};
 				print '</td>';
 			}
 			print "</tr>\n";

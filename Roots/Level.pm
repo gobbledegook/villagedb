@@ -285,7 +285,7 @@ sub _full {
 	if ($self->{flagnote} && !$self->{flag}) {
 		# show note if no internal flag set
 		$result .= qq|</td></tr><tr><td colspan="$m">|;
-		$result .= $self->{flagnote};
+		$result .= linkify($self->{flagnote});
 	}
 	if ($Roots::Util::admin) {
 		$result .= qq|</td></tr><tr><td colspan="$m">Flag: | . $self->{flag};
@@ -300,6 +300,13 @@ sub format_long {
 	my $self = shift;
 	my (undef, $value) = @_;
 	return $value;
+}
+
+sub linkify {
+	my ($s) = @_;
+	my $url = url(-absolute => 1); # get url for display.cgi
+	$s =~ s#\[(.+?)\]\((.+?)\)#<a href="$url/$2">$1</a>#g;
+	return $s;
 }
 
 # Editing Methods

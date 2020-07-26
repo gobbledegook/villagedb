@@ -447,7 +447,7 @@ sub print_villages {
 		}
 		print "<li>";
 		$x->display_short();
-		print qq| $x->{flagnote}| if $x->{flagnote} && !$x->{flag};
+		print note($x);
 		if ($auth_name) {
 			print Roots::Template::button('Edit', 'Village', $x->{id}, $self);
 			print qq| <span class="warn">[$x->{flag}] $x->{flagnote}</span>| if $Roots::Util::admin && $x->{flag};
@@ -464,7 +464,7 @@ sub print_villages {
 				$v->load(@vrow);
 				print "<li>";
 				$v->display_short();
-				print qq| $v->{flagnote}| if $v->{flagnote} && !$v->{flag};
+				print note($v);
 				if ($auth_name) {
 					print Roots::Template::button('Edit', 'Village', $v->{id}, $self);
 					print qq| <span class="warn">[$v->{flag}] $v->{flagnote}</span>| if $Roots::Util::admin && $v->{flag};
@@ -492,7 +492,9 @@ sub print_list {
 	return if $num == 0;
 
 	my $module = "Roots::Level::$table";
-	my $sql = 'SELECT ' . join(',', $module->query_fields()) . ' FROM ' . $table;
+	my @fields = $module->query_fields();
+	push @fields, qw(Date_Modified Created_By Flag FlagNote) if $table eq 'Village';
+	my $sql = 'SELECT ' . join(',', @fields) .  ' FROM ' . $table;
 	if ($id) {
 		my $col = 'Up_ID';
 		if ($table eq 'Village') {
@@ -517,9 +519,18 @@ sub print_list {
 		print "<li>";
 		$x->load(@row);
 		$x->display_short(1);
+		print note($x);
 		print "</li>\n";
 	}
 	print "</ol>";
+}
+
+sub note {
+	my ($x) = @_;
+	if ($x->{flagnote} && !$x->{flag}) {
+		return ' ' . Roots::Level::linkify($x->{flagnote});
+	}
+	return '';
 }
 
 sub plural {
