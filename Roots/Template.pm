@@ -26,51 +26,19 @@ sub print_head {
 	my $relative_url = url( -relative => 1 );
 	$base = substr($absolute_url, 0, -length($relative_url));
 	print <<EOF;
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-	<!-- Global site tag (gtag.js) - Google Analytics -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-108355814-1"></script>
-	<script>
-		window.dataLayer = window.dataLayer || [];
-		function gtag(){dataLayer.push(arguments);}
-		gtag('js', new Date());
-
-  		gtag('config', 'UA-108355814-1');
-	</script>
 	<title>Village DB$title</title>
-	<meta http-equiv=content-type content="text/html; charset=utf-8">
-	<LINK REL="stylesheet" TYPE="text/css" HREF="${base}style.css">
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="${base}style.css">
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-108355814-1"></script>
+	<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date);gtag("config","UA-108355814-1");</script>
 EOF
 	unless ($no_options) {
-		print <<JSCRIPT;
-	<script language="JavaScript" type="text/javascript">
-	<!--
-	function setDisp(c) {
-		if (!document.styleSheets) return; var n;
-		if (document.styleSheets[1].cssRules) n = document.styleSheets[1].cssRules
-		else if (document.styleSheets[1].rules) n = document.styleSheets[1].rules
-		else return;
-		n[n.length-c.value].style.display = c.checked ? 'inline' : 'none';
-		setDispCookie();
-		if (document.surname) resetMenu();
-	}
-
-	function setDispCookie() {
-		var k = new Array("rom", "py", "jp"); var r = new Array("b5");
-		for (var i = 0; i < k.length; i++) {if (document.getElementById(k[i]).checked) r[r.length] = k[i];}
-		var d = new Date; d.setFullYear(d.getFullYear()+1);
-		document.cookie = "disp=" + r.join('&') + ';expires=' + d.toGMTString() + ';path=/';
-	}
-	//-->
-	</script>
-	<style type="text/css">
-sup { line-height: 100%; font-size: 67%; }
-JSCRIPT
-		foreach (@keys) {
-			print ".$_ {display:" . ($dispcss{$_} ? 'inline' : 'none') . "} ";	
-		}
+		print qq#<script src="${base}js/displayoptions.js"></script>\n#;
+		print qq#<style type="text/css">sup { line-height: 100%; font-size: 67%; } #;
+		print ".$_ {display:" . ($dispcss{$_} ? 'inline' : 'none') . "} " foreach @keys;
 		print "</style>\n";
 	}
 	print <<EOF;
@@ -80,8 +48,12 @@ JSCRIPT
 </head>
 <body>
 <table border="0" width="100%">
-<tr><td width="92"><!-- sidebar -->
-<div class="logo"><a href="https://www.friendsofroots.org/">Friends of Roots</a><hr>Village&nbsp;DB</div>
+<tr><td width="100">
+<div class="logo">
+<a href="https://www.friendsofroots.org/">Friends of Roots</a>
+<hr width="80" align="left" size="5">
+VillageDB
+</div>
 <hr width="80" align="left" size="5">
 <a href="${base}display.cgi">Browse</a><p>
 <a href="${base}search.cgi">Search</a><p>
