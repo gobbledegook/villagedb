@@ -45,7 +45,7 @@ sub _values {
 	my $class = shift;
 	my ($skip_id) = @_;
 	if (scalar param('map_loc')) {
-		my ($latlon) = mgrs2latlon(scalar param('map_loc'), scalar param('id'));
+		my ($latlon) = mgrs2latlon(scalar param('map_loc'), $skip_id ? 0 : scalar param('id'));
 		param('latlon', $latlon);
 	}
 	return $class->SUPER::_values($skip_id);
@@ -54,7 +54,9 @@ sub _values {
 sub mgrs2latlon {
 	require Geo::Coordinates::UTM;
 	my ($maploc, $area_id) = @_;
+	$area_id = $dbh->selectrow_array("select Up_ID from Heung where ID=?", undef, scalar param('id')) unless $area_id;
 	my ($county_id, $county, $area) = $dbh->selectrow_array('SELECT County.ID, County.Name, Area.Num FROM Area JOIN County ON Area.Up_ID=County.ID WHERE Area.ID=?', undef, $area_id);
+	bail("couldn't get county id") unless $county_id;
 	my ($letter1, $easting, $northing) = $maploc =~ /(\w)\w ?(\d\d)(\d\d)/;
 	my $letter2 = 'E'; # E is the new Q!
 	# Per https://www.maptools.com/tutorials/mgrs_usng_diffs:

@@ -354,6 +354,7 @@ sub _add {
 	my ($proto_override) = @_;
 	
 	foreach ($class->_addable_flds) {
+		next if $_ eq 'latlon';
 		my $label = $_fld_label{$_};
 		my $override = $_ignore_override{$_} ? 0 : $proto_override;
 		if ($_big{$_}) {
@@ -600,6 +601,7 @@ sub display_edit {
 
 	print "<table border=0 cellpadding=5>";
 	foreach ($self->_addable_flds) {
+		next if $_ eq 'latlon' && $self->{map_loc};
 		my $label = $_fld_label{$_};
 		if ($_big{$_}) {
 			print Tr(th($label), td($self->{$_}->form_edit($_, $Force_STC_Convert)));
@@ -674,8 +676,8 @@ sub display_edit_confirm {
 	if ($Roots::Util::admin) {
 		my $flag = 0;
 		$flag += $_ foreach multi_param('flag');
-		print qq|<tr><td>Flag: | . $flag;
-		print ' Note: ' . param('flagnote') if param('flagnote');
+		print qq|<tr><td colspan="2">Flag: | . $flag;
+		print '<br>Note: ' . param('flagnote') if param('flagnote');
 		param('flag', $flag);
 		print hidden("flag");	## compare with old info?
 		print hidden("flagnote");
@@ -693,6 +695,7 @@ sub _edit_confirm {
 	my ($old_info) = @_;
 	
 	foreach ($class->_addable_flds) {
+		next if $_ eq 'latlon' && scalar param('map_loc');
 		my $label = $_fld_label{$_};
 		if ($_big{$_}) {
 			print Tr(th($label), td(BigName::form_edit_confirm($_, $old_info->{$_})));
