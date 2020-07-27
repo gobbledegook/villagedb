@@ -190,29 +190,4 @@ our @menu = (['dummy'],
 ['容', 'Yung', 'Róng', 'rong2'],
 );
 
-# run this on the command line if you update the above list:
-# perl -I. -MRoots::Surnames -e 'Roots::Surnames::export_js()' > js/surnames.js
-sub export_js {
-	my @keys = qw(b5 rom py);
-	for my $i (0..2) {
-		print "var m_$keys[$i] = new Array(";
-		print(join ",", map {'"' . $_->[$i] . '"'} @menu);
-		print ");\n";
-	}
-	print <<EOF;
-function resetMenu() {
-	var n = document.surname.surname.options; var s;
-	var show_py = document.cookie.indexOf("&py") != -1;
-	var sort_py = document.cookie.indexOf("sort=py") != -1;
-	for (i=1; i<n.length; i++) {
-		if (show_py) {
-			if (sort_py) s = m_py[i] + ' (' + m_rom[i] + ')';
-			else s = m_rom[i] + ' (' + m_py[i] + ')';
-		} else s = m_rom[i];
-		n[i].text = s + ' (' + m_b5[i] + ')';
-	}
-}
-EOF
-}
-
 1;

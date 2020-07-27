@@ -771,7 +771,7 @@ sub search {
 			}
 		}
 	}
-	if ($sortorder eq 'PY' || $sortorder eq 'ROM') {
+	if ($sortorder eq 'PY' || $sortorder eq 'ROM' || $sortorder eq 'JP') {
 		$options .= ", $level.Name_$sortorder";
 	} else {
 		$options .= ", $level.ID";

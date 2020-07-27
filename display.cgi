@@ -402,7 +402,7 @@ sub print_villages {
 		. ' FROM Village'
 		. " WHERE Heung_ID=? AND Village_ID IS NULL"
 		. " ORDER BY Subheung_ID, Subheung2_ID";
-	if ($sortorder =~ m/^(PY|ROM)$/ ) {
+	if ($sortorder =~ m/^(PY|ROM|JP)$/ ) {
 		$sql .= ", Name_$sortorder";
 	} else {
 		$sql .= ", Village.ID";
@@ -455,7 +455,7 @@ sub print_villages {
 		print "</li>\n";
 		if ($num_subvillages) {
 			my $sql = 'SELECT ' . join(',', Roots::Level::Village->query_fields()) . ',Date_Modified, Created_By, Flag, FlagNote FROM Village'
-				. " WHERE Village_ID=? ORDER BY " . ($sortorder =~ m/^(PY|ROM)$/ ? "Name_$sortorder" : 'ID');
+				. " WHERE Village_ID=? ORDER BY " . ($sortorder =~ m/^(PY|ROM|JP)$/ ? "Name_$sortorder" : 'ID');
 			my $vsth = $dbh->prepare($sql);
 			$vsth->execute($x->{id});
 			print '<ol class="subvillage">';
@@ -505,7 +505,7 @@ sub print_list {
 			$sql .= ' AND Subheung2_ID IS NULL';
 		}
 	}
-	if ($table ne "Area" && $sortorder =~ m/^(PY|ROM)$/) {
+	if ($table ne "Area" && $sortorder =~ m/^(PY|ROM|JP)$/) {
 		$sql .= " ORDER BY Name_$sortorder";
 	} else {
 		$sql .= " ORDER BY $table.ID";

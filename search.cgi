@@ -83,10 +83,10 @@ sub do_search_by_surname {
 		print '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>';
 		print '<div id="mapid" style="height:760px"></div>';
 		print "<p>Heungs/townships containing villages with surname $surname (larger circles means more villages with this surname).</p>\n";
-		print "<script>\n<!--\n";
+		print "<script>";
 		print 'var circles = {}; var heungs = [';
 		print $heunginfo;
-		print "];\n//-->\n</script>\n";
+		print "];</script>\n";
 		print qq|<script src="${Roots::Template::base}js/searchmap_load.js"></script>\n|;
 	}
 
@@ -343,10 +343,25 @@ sub print_search {
 	} else {
 		@menu = @Roots::Surnames::menu;
 	}
-	$surname = $menu[$Q::surname][0] if $Q::surname != 0 && $Q::surname < @menu;
-	print '<h3>Search by surname</h3>';
-	print qq|<script src="${Roots::Template::base}js/surnames.js"></script>\n|;
+	if ($reloaded) {
+		$surname = $session->{surname};
+	} else {
+		$surname = $menu[$Q::surname][0] if $Q::surname != 0 && $Q::surname < @menu;
+	}
+	$session->{surname} = $surname; # save this in case user changes the sort order
+
+	print "<script>";
+	my @keys = qw(b5 rom py);
+	for my $i (0..2) {
+		print "var m_$keys[$i] = new Array(";
+		print(join ",", map {'"' . $_->[$i] . '"'} @menu);
+		print ");\n";
+	}
+	print "</script>";
+	# generate js arrays here so they're sorted identically
 	print <<EOF;
+<script src="${Roots::Template::base}js/surnames.js"></script>
+<h3>Search by surname</h3>
 <form method="POST" action="$self" name="surname">
 <p>Search for villages with surname 
 <select name="surname" onchange="document.surname.submit()"
@@ -360,8 +375,7 @@ EOF
 			if ($sort_py) { $rom = qq#$py ($rom)# }
 			else { $rom = qq#$rom ($py)# }
 		}
-		my $selected = $Q::surname == $_ ? ' selected' : '';
-			# this is why we don't use 0, so we don't accidentally select the first surname
+		my $selected = $surname eq $b5 ? ' selected' : '';
 		print qq#<option$selected value=$_>$rom ($b5)</option>\n#;
 	}
 

@@ -6,9 +6,9 @@ use CGI qw(cookie url);
 use utf8;
 
 my @keys = qw(b5 rom py jp);
-my @sortkeys = qw(book rom py);
+my @sortkeys = qw(book rom py jp);
 my %sortmenu;
-@sortmenu{@sortkeys} = ("original (source)", "romanization", "pinyin");
+@sortmenu{@sortkeys} = ("original (source)", "romanization", "pinyin", "jyutping");
 my @disp = cookie('disp');
 unless (@disp) {
 	@disp = qw( b5 rom ); # just show b5 and romanization by default
@@ -92,7 +92,7 @@ EOF
 <form action="${base}options.cgi" method="post" id="view" style="display:none">
 EOF
 		my %labels;
-			@labels{@keys} = qw(big5 romanization pīnyīn jyut<sup>6</sup>ping<sup>3</sup>);
+			@labels{@keys} = ('big5', 'romanization', 'pīnyīn <tt style="color:gray">[^P]</tt>', 'jyut<sup>6</sup>ping<sup>3</sup> <tt style="color:gray">[^J]</tt>');
 		my $count = 3;
 		foreach (qw(rom py jp)) {
 			print qq#<label><input type="checkbox" onclick="setDisp(this)" value="$count" name="disp" id="$_"#;

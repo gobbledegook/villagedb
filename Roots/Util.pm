@@ -89,6 +89,7 @@ sub get_session {
 	for (cookie('sort')) {
 		$sortorder = 'PY', last if /^py$/;
 		$sortorder = 'ROM', last if /^rom$/;
+		$sortorder = 'JP', last if /^jp$/;
 		$sortorder = 'book';
 	}
 	
