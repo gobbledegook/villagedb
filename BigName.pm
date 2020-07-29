@@ -25,10 +25,6 @@ print $name->format_long();
 
 each BigName is made up of five simple name variants: b5 (now unicode), rom, py, jp, stc.
 
-format_short and format_long print the desired variants (as specified using the
-@BigName::displayed variable) as html, short on one line, long on multiple lines
-(i.e., using <br> tags).
-
 format_short takes an optional "comma replacement" parameter. Usually you pass
 "aka". In this case, if each simple name consists of two or more comma-separated
 items, it will print multiple lines, each line with one of the items.
@@ -40,10 +36,9 @@ package BigName;
 use v5.12;
 use utf8;
 use CGI qw(:html2 :html3 :form param);
-our (@keys, %labels, @displayed);
-@keys 			= qw( b5 rom py jp stc );
+our @keys = qw( b5 rom py jp stc );
+my %labels;
 @labels{@keys} 	= qw( Hant Romanization Pinyin Jyutping STC );
-@displayed		= qw( b5 rom py jp );	# default keys to display
 
 # Constructor
 
@@ -80,8 +75,12 @@ sub concat_with_classtags {
 		my $label = shift @labels;
 		next if $_ eq '';
 		# assuming b5 is first and always shown
-		my $string = defined($result) ? "$sep$_" : $_;
-		$result .= qq#<span class="$label">$string</span>#;
+		if ($result) {
+			$result .= "<span class=$label>$sep$_</span>";
+		} else {
+			# always show b5, no <span> needed
+			$result = $_;
+		}
 	}
 	return $result;
 }
@@ -424,8 +423,8 @@ sub format_pinyin {
 
 sub format_jyutping {
 	my ($s) = @_;
-	$s =~ s/([123456])/<sup>$1<\/sup>/g;
-	return $s;
+	$s =~ tr/123456/¹²³⁴⁵⁶/;
+	return join ', ', map { ucfirst } split /, */, $s;
 }
 }
 

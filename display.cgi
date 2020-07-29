@@ -179,7 +179,6 @@ if ($btn eq "Display") {
 		if ($auth_name ne $info{$Q::level}->{created_by} && !$Roots::Util::admin) {
 			print "Sorry, in order to delete this record, you must be signed in as the person who created this record."
 		} else {
-			@BigName::displayed = @BigName::keys;	# show all
 			print "<table border=0 cellpadding=5><tr>";
 			print th({-class=>"hier"}, $Q::level), '<td class="current">';
 			$info{$Q::level}->display_full();
@@ -356,10 +355,10 @@ sub print_subheungs {
 		}
 		$output .= "</li>\n";
 		if (defined($subsubheungs)) {
-			$output .= "<ol>";
+			$output .= q|<ol class="subheung">|;
 			for my $subheung2_id (split /,/, $subsubheungs) {
 				$num_subsubheungs++;
-				$output .= '<li style="list-style-type: lower-alpha;">';
+				$output .= '<li>';
 				my $y = Roots::Level::Subheung2->new();
 				$y->load_from_db($subheung2_id) or bail("Subheung2 id $subheung2_id doesn't exist");
 				$subheungs_hash{$y->{id}} = $y;

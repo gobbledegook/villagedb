@@ -244,7 +244,7 @@ sub display_full {	# the idea for these is that everything fits into a <td></td>
 	
 	print qq|<table border="0" cellpadding="5">\n<tr>|;
 	print $self->_full();
-	print qq|</td></tr></table>|;
+	print qq|</tr></table>|;
 }
 
 sub _full {
@@ -279,7 +279,7 @@ sub _full {
 		$result .= "<th>$_fld_label{$_}</th><td>"
 			. ($_big{$_}
 				? $self->{$_}->format_long()
-				: $self->format_long($_, $self->{$_}));
+				: $self->format_full($_, $self->{$_}));
 		$result .= "</td></tr><tr>" if @fields; # if there's anything left, prepare a new row
 	}
 	if ($self->{flagnote} && !$self->{flag}) {
@@ -296,7 +296,7 @@ sub _full {
 	return $result;
 }
 
-sub format_long {
+sub format_full {
 	my $self = shift;
 	my (undef, $value) = @_;
 	return $value;

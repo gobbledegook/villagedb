@@ -5,16 +5,11 @@ use v5.12;
 use CGI qw(cookie url);
 use utf8;
 
-my @keys = qw(b5 rom py jp);
 my @sortkeys = qw(book rom py jp);
 my %sortmenu;
 @sortmenu{@sortkeys} = ("original (source)", "romanization", "pinyin", "jyutping");
 my @disp = cookie('disp');
-unless (@disp) {
-	@disp = qw( b5 rom ); # just show b5 and romanization by default
-}
-my %dispcss;
-@dispcss{@disp} = (1) x scalar @disp;
+@disp = 'rom' if !@disp; # just show b5 and romanization by default
 
 our ($base);
 sub print_head {
@@ -37,8 +32,11 @@ sub print_head {
 EOF
 	unless ($no_options) {
 		print qq#<script src="${base}js/displayoptions.js"></script>\n#;
-		print qq#<style type="text/css">sup { line-height: 100%; font-size: 67%; } #;
-		print ".$_ {display:" . ($dispcss{$_} ? 'inline' : 'none') . "} " foreach @keys;
+		print qq#<style type="text/css">#;
+		for my $key (qw(rom py jp)) {
+			my $d = (grep {$_ eq $key} @disp) ? 'inline' : 'none';
+			print ".$key {display:$d} ";
+		}
 		print "</style>\n";
 	}
 	print <<EOF;
@@ -47,23 +45,22 @@ EOF
 	crossorigin=""/>
 </head>
 <body>
-<table border="0" width="100%">
-<tr><td width="100">
-<div class="logo">
+<div class="sidebar">
+<div class="head">
 <a href="https://www.friendsofroots.org/">Friends of Roots</a>
-<hr width="80" align="left" size="5">
+<hr>
 VillageDB
+<hr>
 </div>
-<hr width="80" align="left" size="5">
 <a href="${base}display.cgi">Browse</a><p>
 <a href="${base}search.cgi">Search</a><p>
-<a href="${base}about.html">About</a><p>
-</td><td>
+<a href="${base}about.html">About</a>
+</div>
+<div class="main">
 EOF
 
 	print <<EOF;
-<div style="font-size: smaller" align="right">
-<form method="POST" action="${base}sort.cgi" name="sort">
+<div class="options">
 EOF
 	if ($auth_name) {
 		print "You are logged in as $auth_name. | ",
@@ -74,6 +71,7 @@ EOF
 
 	unless ($no_options) {
 		print <<EOF;
+<form method="POST" action="${base}sort.cgi" name="sort">
 sort order:
 <select name="sort" onchange="document.sort.submit()">
 EOF
@@ -84,29 +82,22 @@ EOF
 		print <<EOF;
 </select>
 <noscript>
-<input type="submit" value="sort" name="btn"></button>
+<input type="submit" value="sort" name="btn">
 </noscript>
-| <a href="${base}options.cgi"
-	onclick="var n = document.getElementById('view').style; n['display'] = n['display'] == 'none' ? 'block' : 'none'; return false">more options</a>
 </form>
-<form action="${base}options.cgi" method="post" id="view" style="display:none">
+| <a href="${base}options.cgi" id="moreoptions">more options</a>
+<div id="view">
+<label><input type="checkbox" id="rom">romanization</label>
+<label><input type="checkbox" id="py">pīnyīn <kbd>[^P]</kbd></label>
+<label><input type="checkbox" id="jp">jyut⁶ping³ <kbd>[^J]</kbd></label>
+</div>
 EOF
-		my %labels;
-			@labels{@keys} = ('big5', 'romanization', 'pīnyīn <tt style="color:gray">[^P]</tt>', 'jyut<sup>6</sup>ping<sup>3</sup> <tt style="color:gray">[^J]</tt>');
-		my $count = 3;
-		foreach (qw(rom py jp)) {
-			print qq#<label><input type="checkbox" onclick="setDisp(this)" value="$count" name="disp" id="$_"#;
-			print ' checked' if $dispcss{$_};
-			print qq#>$labels{$_}</label>#;
-			$count--;
-		}
 	}
-	print "</form></div><hr>\n";
+	print "</div><hr>\n";
 }
 
 sub print_tail {
-	print "</td></tr></table>\n";
-	print "</body></html>\n";
+	print "</div></body></html>\n";
 }
 
 sub button {

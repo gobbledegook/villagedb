@@ -26,7 +26,13 @@ sub _short {
 	my ($display) = @_;
 	if ($self->{num}) {
 		if ($display) {
-			return $self->{name}->rom() ? $self->{name}->format_short() : $self->{num};
+			return $self->{name}->format_short() if $self->{name}->rom();
+			for ($self->{num}) {
+				return '1st Area' if $_ == 1;
+				return '2nd Area' if $_ == 2;
+				return '3rd Area' if $_ == 3;
+				return $_ . 'th Area';
+			}
 		}
 		return $self->{'num'};
 	} else {
@@ -39,7 +45,7 @@ sub _long {
 	if ($self->{num}) {
 		return $self->{'num'};
 	} else {
-		return $self->SUPER::_short(@_);
+		return $self->SUPER::_long(@_);
 	}
 }
 
@@ -52,7 +58,7 @@ sub display_long {
 	}
 }
 
-sub format_long {
+sub format_full {
 	my $self = shift;
 	my ($k, $v) = @_;
 	if ($k eq 'latlon') {
@@ -63,7 +69,7 @@ sub format_long {
 			return '-';
 		}
 	}
-	return $self->SUPER::format_long(@_);
+	return $self->SUPER::format_full(@_);
 }
 
 sub duplicate_check {

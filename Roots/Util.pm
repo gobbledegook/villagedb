@@ -76,14 +76,6 @@ sub get_session {
 							 -expires=>'+1d', -path=>'/');
 	}
 	
-	# now the disp
-	my @displayed = cookie('disp');
-	@displayed = qw( b5 rom ) unless @displayed;
-	@BigName::displayed = @displayed;
-
-	# WARNING don't do this: @BigName::displayed = (cookie('disp') || qw( b5 rom ));
-	# because the || operator makes the first operand scalar
-	
 	# now the sortorder (see sortkeys in Roots::Template)
 	# for security, make sure the value is one of rom jp py
 	for (cookie('sort')) {

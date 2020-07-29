@@ -4,15 +4,36 @@ A:link     			{ color: blue; }
 A:visited   		{ color: #330066; }
 A:hover   			{ color: #990000; }
 
-/* top left corner text */
-.logo
-{
+.sidebar {
+	float: left;
+	width: 100px;
+}
+.sidebar .head {
 	font-size: larger;
 	font-weight: bold;
 }
+.sidebar hr {
+	margin-left: 0;
+	width: 84px;
+	height: 5px;
+}
 
-/* last modified/send-comments-to line */
-.admin { font-size: smaller; text-align: center; }
+.main { margin-left: 103px; }
+.main hr { clear: right; }
+.options {
+	float: right;
+	text-align: right;
+	font-size: smaller;
+	margin-bottom: 1ex;
+}
+.options label { white-space: nowrap; }
+.options kbd { color: gray; }
+.options #view { display: none; }
+.options form { display: inline; }
+
+.footer { font-size: smaller; text-align: center; }
+
+#mapid { height: 760px; }
 
 th { vertical-align: baseline; text-align: right; }
 td { vertical-align: baseline; }
@@ -26,6 +47,7 @@ td.current { background: #FFFF99; }
 table.search {
 	border-collapse: collapse;
 }
+table.search tr td:first-child { text-align: right; }
 table.search th {
 	padding-left:5px;
 	padding-right:5px;
@@ -44,8 +66,24 @@ div.multi {
 	padding-bottom: 1ex;
 }
 
-.num { text-align: right; }
-
 .band-subheung  { background: #F0F0D0; width: 98%; padding:1ex; }
-li.subheung { list-style-type: lower-alpha; }
+.subheung { list-style-type: lower-alpha; }
 ol.subvillage { list-style-type: lower-roman; }
+
+@font-face {
+	font-family: supernums;
+	src:local("Hoefler Text"),
+		local("Doulos SIL"),
+		local("Palatino Linotype"),
+		local("Gentium"),
+		local("Linux Libertine");
+	unicode-range: U+B2-B9, U+2074-2076;
+}
+.jp, #view {
+	font-family: supernums, serif;
+	line-height: 100%;
+}
+
+.fade {
+	transition: background-color 400ms ease-out;
+}

@@ -30,7 +30,7 @@ sub display_long {
 	}
 }
 
-sub format_long {
+sub format_full {
 	my $self = shift;
 	my ($key, $val) = @_;
 	my $result = $val;

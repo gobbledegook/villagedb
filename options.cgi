@@ -46,7 +46,6 @@ sub print_options {
 	print <<EOF;
 <p>Please select the encodings you want displayed:</p>
 <form method="POST">
-<input type="checkbox" name="disp" id="b5" $checked{b5} value="b5"><label for="b5">Big5</label><br>
 <input type="checkbox" name="disp" id="rom" $checked{rom} value="rom"><label for="rom">Romanization</label><br>
 <input type="checkbox" name="disp" id="py" $checked{py} value="py"><label for="py">Pinyin (Mandarin)</label><br>
 <input type="checkbox" name="disp" id="jp" $checked{jp} value="jp"><label for="jp">Jyutping (Cantonese)</label><br>

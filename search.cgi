@@ -30,13 +30,8 @@ $session->{'query'} = $q;
 
 my $dbh = Roots::Util::do_connect();
 
-
-# print headers
 print header(-type=>'text/html; charset=utf-8', $cookie ? (-cookie=>$cookie) : ());
 Roots::Template::print_head('Search', $auth_name);
-
-# display stuff
-print h1("Village DB Search");
 
 my %actions = ( SearchSurname=>\&do_search_by_surname,
 				SearchOther=>\&do_search_other,
@@ -47,9 +42,9 @@ my $action = $actions{$btn} || \&do_search_screen;
 &$action;
 
 $dbh->disconnect;
-print hr, qq|\n<div class="admin">|;
+print qq|<script src="${Roots::Template::base}js/searchtable.js"></script>\n| if $btn;
+print hr, qq|\n<div class="footer">|;
 print "VillageDB $Roots::Util::VERSION by Dominic Yu.\n";
-#print qq#| <a href="about.html">About</a>#;
 print "</div>";
 print qq#<script>window.history.replaceState(null,"","$self")</script># if $reloaded;
 Roots::Template::print_tail();
@@ -81,7 +76,7 @@ sub do_search_by_surname {
 	}
 	if ($heunginfo) {
 		print '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js" integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew==" crossorigin=""></script>';
-		print '<div id="mapid" style="height:760px"></div>';
+		print '<div id="mapid"></div>';
 		print "<p>Heungs/townships containing villages with surname $surname (larger circles means more villages with this surname).</p>\n";
 		print "<script>";
 		print 'var circles = {}; var heungs = [';
@@ -110,6 +105,7 @@ sub do_search_other {
 			print_results(1, 'Heung'), last if /^\\heu/i;
 			print_results(1, 'Subheung2'), last if /^\\subh.*?2/i;
 			print_results(1, 'Subheung'), last if /^\\subh/i;
+			print_results("Village.Flag=0 and Village.FlagNote!=''", 'Village'), last if /^\\note/i;
 		}
 		printf '<p>Query took %.3f seconds.</p>', $Roots::Level::ELAPSED if $Roots::Level::ELAPSED;
 		return;
@@ -259,7 +255,7 @@ sub print_results {
 		
 		# second pass: generate html table
 		print q|<table class="search">|;
-		my $thead = "<thead><th>#</th><th>County</th><th>Area</th><th>Heung</th>";
+		my $thead = "<thead><tr><th>#</th><th>County</th><th>Area</th><th>Heung</th>";
 		if ($table eq 'Village') {
 			$thead .= "<th>Village</th>";
 		} elsif ($table =~ /^Subheung/) {
@@ -290,7 +286,7 @@ sub print_results {
 				}
 				$old_county_id = $county_id;
 			}
-			print qq|<tr><td class="num">$n</td>|;
+			print qq|<tr><td>$n</td>|;
 			foreach my $x (@$_) {
 				my $oldid = $oldrow && (shift @$oldrow)->{id};
 				next if $x->{id} == $oldid;
@@ -308,6 +304,7 @@ sub print_results {
 				print qq# id="$id"# if $id;
 				print '>';
 				$x->display_short();
+				print "\x{3000}" if $x->{num}; # force the baseline for Area numbers to align by printing a CJK space
 				if ($id) {
 					print ' <a href="#" class="maplink">[map↑]</a>';
 				}
@@ -330,13 +327,12 @@ sub print_results {
 	} else {
 		print "<p>No results found.</p>" if $isvillage;
 	}
-	print qq|<script src="${Roots::Template::base}js/searchtable.js"></script>\n|;
 	return $total;
 }
 
 sub print_search {
 	my $sort_py = $sortorder eq 'PY';
-	my $show_py = $sort_py || grep {$_ eq 'py'} @BigName::displayed;
+	my $show_py = $sort_py || grep {$_ eq 'py'} cookie('disp');
 	my @menu;
 	if ($sort_py) {
 		@menu = sort {$$a[3] cmp $$b[3]} @Roots::Surnames::menu;
@@ -395,7 +391,7 @@ for ($Q::field) {
 my $heungs_checked = ' checked' if $Q::searchheungs;
 print <<EOF;
 <h3>Search by other</h3>
-<form method="POST" action="$self" style="display: inline;">
+<form method="POST" action="$self">
 Search for villages whose name
 
 <select name="field">
